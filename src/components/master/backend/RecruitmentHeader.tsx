@@ -33,13 +33,11 @@ export default function RecruitmentHeader() {
           </a>
         </div>
 
-        {/* Notifications */}
         <button className="relative p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-all">
           <Bell size={20} />
           <span className="absolute top-2 right-2 w-2 h-2 bg-yellow-500 rounded-full border-2 border-white"></span>
         </button>
 
-        {/* User Dropdown */}
         <div className="flex items-center gap-3 pl-4 cursor-pointer group">
           <div className="text-right">
             <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">
