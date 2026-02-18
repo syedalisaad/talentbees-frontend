@@ -37,10 +37,10 @@ export default function Navbar() {
             Sign In
           </Link>
           <Link
-            href="/register"
+            href="/recruitment/login"
             className="rounded-full bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition-all golden-bee"
           >
-            Join Now
+            Post Jobs
           </Link>
           <button className="md:hidden p-2 text-slate-600">
             <Menu size={24} />

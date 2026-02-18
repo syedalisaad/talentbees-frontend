@@ -14,10 +14,10 @@ export default function Footer() {
               The world's leading job portal connecting top talent with innovative companies worldwide.
             </p>
             <div className="mt-6 flex gap-4 text-slate-400">
-              <Facebook size={20} className="hover:text-indigo-600 cursor-pointer" />
-              <Twitter size={20} className="hover:text-indigo-600 cursor-pointer" />
-              <Linkedin size={20} className="hover:text-indigo-600 cursor-pointer" />
-              <Github size={20} className="hover:text-indigo-600 cursor-pointer" />
+              <Facebook size={20} className="hover:text-yellow-300 cursor-pointer" />
+              <Twitter size={20} className="hover:text-yellow-300 cursor-pointer" />
+              <Linkedin size={20} className="hover:text-yellow-300 cursor-pointer" />
+              <Github size={20} className="hover:text-yellow-300 cursor-pointer" />
             </div>
           </div>
 
@@ -25,9 +25,9 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-slate-900 mb-4">For Candidates</h4>
             <ul className="space-y-2 text-sm text-slate-600">
-              <li><Link href="/jobs" className="hover:text-indigo-600">Browse Jobs</Link></li>
-              <li><Link href="/dashboard/profile" className="hover:text-indigo-600">Candidate Dashboard</Link></li>
-              <li><Link href="/jobs/remote" className="hover:text-indigo-600">Remote Jobs</Link></li>
+              <li><Link href="/jobs" className="hover:text-yellow-300">Browse Jobs</Link></li>
+              <li><Link href="/dashboard/profile" className="hover:text-yellow-300">Candidate Dashboard</Link></li>
+              <li><Link href="/jobs/remote" className="hover:text-yellow-300">Remote Jobs</Link></li>
             </ul>
           </div>
 
@@ -35,8 +35,10 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-slate-900 mb-4">For Employers</h4>
             <ul className="space-y-2 text-sm text-slate-600">
-              <li><Link href="/post-job" className="hover:text-indigo-600">Post a Job</Link></li>
-              <li><Link href="/hiring-solutions" className="hover:text-indigo-600">Hiring Solutions</Link></li>
+              <li><Link href="/recruitment/login" className="hover:text-yellow-300">Post a Job</Link></li>
+              <li><Link href="/recruitment/job" className="hover:text-yellow-300">Job Post</Link></li>
+              <li><Link href="/recruitment/job/form" className="hover:text-yellow-300">Job Post form</Link></li>
+              <li><Link href="/hiring-solutions" className="hover:text-yellow-300">Hiring Solutions</Link></li>
             </ul>
           </div>
 
@@ -44,9 +46,9 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-slate-900 mb-4">Support</h4>
             <ul className="space-y-2 text-sm text-slate-600">
-              <li><Link href="/help" className="hover:text-indigo-600">Help Center</Link></li>
-              <li><Link href="/contact" className="hover:text-indigo-600">Contact Us</Link></li>
-              <li><Link href="/privacy" className="hover:text-indigo-600">Privacy Policy</Link></li>
+              <li><Link href="/help" className="hover:text-yellow-300">Help Center</Link></li>
+              <li><Link href="/contact" className="hover:text-yellow-300">Contact Us</Link></li>
+              <li><Link href="/privacy" className="hover:text-yellow-300">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>
