@@ -18,14 +18,19 @@ export default function PostJobForm() {
       setSkillInput("");
     }
   };
+  const addLanguage = () => {
+    if (langInput && !formData.languages.includes(langInput)) {
+      setFormData({ ...formData, languages: [...formData.languages, langInput] });
+      setLangInput("");
+    }   
+  };
 
-  // Common styles for ultra-compact UI
   const inputStyle = "w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 outline-none focus:border-yellow-400 focus:bg-white transition-all font-bold text-slate-700 text-[12px] placeholder:font-normal placeholder:text-slate-300";
   const labelStyle = "text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-0.5 block";
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-6 px-4 font-sans">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans">
+      <div className="max-w-5xl mx-auto">
         
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-black text-slate-900 tracking-tight">New <span className="text-yellow-500">Job</span></h1>
@@ -110,7 +115,6 @@ export default function PostJobForm() {
             <textarea rows={3} placeholder="Brief role overview..." className={`${inputStyle} resize-none font-medium text-slate-600`}></textarea>
           </section>
 
-          {/* Section 3: Tags (Skills & Languages) */}
           <div className="grid grid-cols-2 gap-3">
             <section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
               <label className={labelStyle}>Skills</label>
@@ -127,9 +131,9 @@ export default function PostJobForm() {
               </div>
               <div className="flex flex-wrap gap-1">
                 {formData.skills.map((skill) => (
-                  <span key={skill} className="bg-slate-900 text-yellow-400 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1">
+                  <span key={skill} className="bg-yellow-200 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1">
                     {skill}
-                    <X size={8} className="cursor-pointer text-white" onClick={() => setFormData({...formData, skills: formData.skills.filter(s => s !== skill)})} />
+                    <X size={8} className="cursor-pointer text-slate-900 " onClick={() => setFormData({...formData, skills: formData.skills.filter(s => s !== skill)})} />
                   </span>
                 ))}
               </div>
@@ -138,13 +142,27 @@ export default function PostJobForm() {
             <section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
               <label className={labelStyle}>Languages</label>
               <div className="relative mb-2">
-                <input type="text" placeholder="Add..." className={inputStyle} />
+                <input
+                  type="text"
+                  value={langInput}
+                  onChange={(e) => setLangInput(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && addLanguage()}
+                  placeholder="Press enter..."
+                  className={inputStyle}
+                />
                 <Plus size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" />
               </div>
               <div className="flex flex-wrap gap-1">
-                <span className="bg-yellow-100 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded border border-yellow-200">English</span>
+                {formData.languages.map((lang) => (
+                  <span key={lang} className="bg-yellow-200 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1">
+                    {lang}
+                    <X size={8} className="cursor-pointer text-slate-900 " onClick={() => setFormData({...formData, languages: formData.languages.filter(l => l !== lang)})} />
+                  </span>
+                ))}
               </div>
             </section>
+
+           
           </div>
         </div>
       </div>
