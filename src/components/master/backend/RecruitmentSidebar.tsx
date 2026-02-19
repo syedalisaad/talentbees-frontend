@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   LayoutDashboard, 
   PlusCircle, 
@@ -8,32 +8,60 @@ import {
   Users2, 
   BarChart3, 
   ChevronLeft,
-  LogOut
+  LogOut,
+  CalendarCheck,
+  Clock,
+  Wallet
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; 
+import { usePathname, useRouter } from "next/navigation"; 
 
 export default function RecruitmentSidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const router = useRouter();
   const pathname = usePathname();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
+  // 1. Handle Authentication and Mounting
+  useEffect(() => {
+    setMounted(true);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login/recuitment");
+    }
+  }, [router]);
+
+  // 2. Updated Menu Items with specific icons
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: "Dashboard", url: "/recruitment/dashboard" },
-    { icon: <Briefcase size={20} />, label: "Manage Job Posts", url: "/recruitment/job" },
-    { icon: <Users2 size={20} />, label: "Specialists", url: "/recruitment/specialists" },
-    { icon: <BarChart3 size={20} />, label: "Analytics", url: "/recruitment/analytics" },
+    { icon: <Briefcase size={20} />, label: "Manage Jobs", url: "/recruitment/job" },
+    { icon: <Users2 size={20} />, label: "AI Sorting", url: "/recruitment/underconstriction" },
+    { icon: <CalendarCheck size={20} />, label: "Attendance", url: "/recruitment/underconstriction" },
+    { icon: <Clock size={20} />, label: "Leave Request", url: "/recruitment/underconstriction" },
+    { icon: <Wallet size={20} />, label: "Payroll", url: "/recruitment/underconstriction" },
   ];
+
+  // Prevent hydration mismatch
+  if (!mounted) return <aside className="h-screen bg-slate-900 w-64 border-r border-slate-800" />;
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login/recuitment");
+  };
 
   return (
     <aside
-      className={`h-screen bg-slate-900 flex flex-col transition-all duration-300 border-r border-slate-800 sticky top-0 ${isCollapsed ? "w-20" : "w-64"}`}
+      className={`h-screen bg-slate-900 flex flex-col transition-all duration-300 border-r border-slate-800 sticky top-0 z-40 ${
+        isCollapsed ? "w-20" : "w-64"
+      }`}
     >
-      {/* Logo Area */}
+      {/* Logo Section */}
       <div className="p-6 flex items-center justify-between">
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-3 overflow-hidden min-h-[30px]">
           {!isCollapsed && (
-            <div className="relative w-[160px] h-[30px]">
+            <div className="relative w-[140px] h-[30px] animate-in fade-in duration-500">
               <Image
                 src="/theme/white-logo.png"
                 alt="TalentBees Logo"
@@ -42,6 +70,11 @@ export default function RecruitmentSidebar() {
                 priority
               />
             </div>
+          )}
+          {isCollapsed && (
+             <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center font-black text-slate-900">
+                T
+             </div>
           )}
         </div>
         <button
@@ -61,15 +94,14 @@ export default function RecruitmentSidebar() {
         </p>
 
         {menuItems.map((item, idx) => {
-          // Check if this item is the currently active route
-          const isActive = pathname === item.url;
+          const isActive = pathname === item.url && item.url !== "/recruitment/underconstriction";
 
           return (
             <Link href={item.url} key={idx} className="block">
               <button
                 className={`w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-all group relative ${
                   isActive
-                    ? "bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/10"
+                    ? "bg-yellow-400 text-slate-900 shadow-lg shadow-yellow-400/20"
                     : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
                 }`}
               >
@@ -78,20 +110,14 @@ export default function RecruitmentSidebar() {
                 </div>
 
                 {!isCollapsed && (
-                  <div className="flex flex-col items-start leading-tight">
-                    <span className="text-xs font-black uppercase tracking-wider">
-                      {item.label}
-                    </span>
-                    {item.sublabel && (
-                      <span className={`text-[9px] font-bold ${isActive ? "text-slate-700" : "text-slate-500"}`}>
-                        {item.sublabel}
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-xs font-black uppercase tracking-wider">
+                    {item.label}
+                  </span>
                 )}
 
+                {/* Tooltip for Collapsed State */}
                 {isCollapsed && (
-                  <div className="absolute left-16 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-black uppercase tracking-widest">
+                  <div className="absolute left-16 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-black uppercase tracking-widest shadow-xl">
                     {item.label}
                   </div>
                 )}
@@ -100,26 +126,6 @@ export default function RecruitmentSidebar() {
           );
         })}
       </nav>
-
-      {/* Footer / Account */}
-      <div className="p-4 border-t border-slate-800">
-        <div className={`flex items-center gap-3 mb-4 p-2 ${isCollapsed ? "justify-center" : ""}`}>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-400 to-yellow-600 border-2 border-slate-900 shrink-0" />
-          {!isCollapsed && (
-            <div className="overflow-hidden">
-              <p className="text-[11px] font-black text-white truncate uppercase">Bee Corp HR</p>
-              <p className="text-[9px] font-bold text-slate-500 truncate">Pro Plan Admin</p>
-            </div>
-          )}
-        </div>
-
-        <button className={`w-full flex items-center gap-4 px-3 py-2 text-slate-500 hover:text-red-400 transition-colors ${isCollapsed ? "justify-center" : ""}`}>
-          <LogOut size={18} />
-          {!isCollapsed && (
-            <span className="text-[10px] font-black uppercase tracking-widest">Exit Portal</span>
-          )}
-        </button>
-      </div>
     </aside>
   );
 }

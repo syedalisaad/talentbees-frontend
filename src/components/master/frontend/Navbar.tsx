@@ -1,8 +1,27 @@
+"use client";
+
 import Link from 'next/link';
-import { Search, User, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import Image from 'next/image';
+import React, { useState, useEffect } from "react";
 
 export default function Navbar() {
+  const [user, setUser] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false); // To prevent UI flickering
+
+  useEffect(() => {
+    const userStorage = localStorage.getItem("user"); 
+    if (userStorage) {
+      try {   
+        const parsedUser = JSON.parse(userStorage);
+        setUser(parsedUser);
+      } catch (e) {
+        console.error("Failed to parse user from localStorage", e);
+      } 
+    }
+    setIsLoaded(true);
+  }, []);
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -16,32 +35,36 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* <div className="hidden md:flex items-center gap-8">
-          <Link href="/jobs" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-            Find Jobs
-          </Link>
-          <Link href="/companies" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-            Companies
-          </Link>
-          <Link href="/salaries" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
-            Salaries
-          </Link>
-        </div> */}
-
-        {/* Action Buttons */}
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="hidden md:block text-sm font-medium text-slate-600 hover:text-indigo-600"
-          >
-            Sign In
-          </Link>
-          <Link
-            href="/recruitment/login"
-            className="rounded-full bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition-all golden-bee"
-          >
-            Post Jobs
-          </Link>
+          {/* Wait until isLoaded is true to show either state. 
+            Use 'user' (state) instead of 'userStorage' (local variable)
+          */}
+          {isLoaded && (
+            user ? (
+              <Link
+                href="/recruitment/dashboard"
+                  className="rounded-full bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition-all golden-bee"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="hidden md:block text-sm font-medium text-slate-600 hover:text-yellow-300"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/login/recruitment"
+                  className="rounded-full bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition-all golden-bee"
+                >
+                  Post Jobs
+                </Link>
+              </>
+            )
+          )}
+          
           <button className="md:hidden p-2 text-slate-600">
             <Menu size={24} />
           </button>

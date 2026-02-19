@@ -9,7 +9,6 @@ export default function PublicLayout({
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      {/* min-grow ensures the footer stays at the bottom on short pages */}
       <main className="flex-grow">
         {children}
       </main>
