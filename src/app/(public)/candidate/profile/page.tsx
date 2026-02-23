@@ -134,8 +134,7 @@ export default function CandidateProfileForm() {
     console.log("Payload before files:", resumeFile, photoFile, formData);
 
     if (resumeFile) payload.append("resume", resumeFile);
-    if (photoFile) payload.append("photo", photoFile);
-
+    if (photoFile) payload.append("profile_photo_path", photoFile);
     payload.append("experiences", JSON.stringify(formData.experiences));
     payload.append("educations", JSON.stringify(formData.educations));
     payload.append("projects", JSON.stringify(formData.projects));
@@ -230,15 +229,17 @@ export default function CandidateProfileForm() {
     newProj[index][field] = value;
     setFormData({ ...formData, projects: newProj });
   };
-  const handlePhotoChange = (file: File) => {
-    setPhotoFile(file);
-    // Create a local URL for the preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProfilePhotoPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
+ const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0] || null;
+  console.log("Selected file:", file);
+  if (!file) return;
+
+  setPhotoFile(file);
+
+  const reader = new FileReader();
+  reader.onloadend = () => setProfilePhotoPreview(reader.result as string);
+  reader.readAsDataURL(file);
+};
   const inputStyle =
     "w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 outline-none focus:border-yellow-400 focus:bg-white transition-all font-bold text-slate-700 text-[12px] disabled:opacity-50";
   const labelStyle =
@@ -309,10 +310,7 @@ export default function CandidateProfileForm() {
                       type="file"
                       className="hidden"
                       accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handlePhotoChange(file);
-                      }}
+                      onChange={handlePhotoChange}
                     />
                   </label>
                 </div>
@@ -444,23 +442,23 @@ export default function CandidateProfileForm() {
                 )}
               </div>
               <div className="col-span-12">
-                              <label className={labelStyle}>Upload Resume (PDF only)</label>
+                <label className={labelStyle}>Upload Resume (PDF only)</label>
 
-              <div className="mt-2 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 bg-slate-50 hover:bg-white hover:border-yellow-400 transition-all cursor-pointer relative">
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                />
-                <div className="text-center">
-                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-tighter">
-                    {resumeFile
-                      ? resumeFile.name
-                      : "Drop PDF here or click to upload"}
-                  </p>
+                <div className="mt-2 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-6 bg-slate-50 hover:bg-white hover:border-yellow-400 transition-all cursor-pointer relative">
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                  <div className="text-center">
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-tighter">
+                      {resumeFile
+                        ? resumeFile.name
+                        : "Drop PDF here or click to upload"}
+                    </p>
+                  </div>
                 </div>
-              </div>
               </div>
             </div>
           </section>

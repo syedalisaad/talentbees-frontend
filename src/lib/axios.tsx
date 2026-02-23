@@ -13,7 +13,13 @@
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+   // ONLY set JSON if we aren't sending FormData
+  if (!(config.data instanceof FormData)) {
     config.headers["Content-Type"] = "application/json";
+  } else {
+    // Delete the content-type to let the browser set it with the boundary
+    delete config.headers["Content-Type"];
+  }
     return config;
   });
 
