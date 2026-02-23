@@ -1,5 +1,6 @@
 import Navbar from "@/src/components/master/frontend/Navbar";
 import Footer from "@/src/components/master/frontend/Footer";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function PublicLayout({
   children,

@@ -25,7 +25,7 @@ export default function RecruitmentHeader() {
     
     if (storedUser) {
       try {
-        const parsed = JSON.parse(storedUser);
+        const parsed = (storedUser);
         const fullName = parsed.name || "Admin User";
 
         const initials = fullName
@@ -46,7 +46,6 @@ export default function RecruitmentHeader() {
       }
     }
 
-    // --- 2. CLICK OUTSIDE HANDLER ---
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
@@ -59,7 +58,7 @@ export default function RecruitmentHeader() {
 
   const handleLogout = () => {
     localStorage.clear();
-    router.push("/login/recuitment");
+    router.push("/login/recruitment");
   };
 
   return (
@@ -98,7 +97,7 @@ export default function RecruitmentHeader() {
                 {user.name}
               </p>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                {user.user?.company.company_name || "Company Name"}  
+                {user?.company?.company_name || "Company Name"}  
               </p>
             </div>
 

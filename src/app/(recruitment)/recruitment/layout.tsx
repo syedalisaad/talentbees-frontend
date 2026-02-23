@@ -1,6 +1,7 @@
 // app/(recruitment)/layout.tsx
 import RecruitmentSidebar from "@/src/components/master/backend/RecruitmentSidebar";
 import RecruitmentHeader from "@/src/components/master/backend/RecruitmentHeader";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function RecruitmentLayout({ children }: { children: React.ReactNode }) {
   return (

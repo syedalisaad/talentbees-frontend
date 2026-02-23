@@ -23,16 +23,25 @@ export default function RecruitmentSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // 1. Handle Authentication and Mounting
   useEffect(() => {
     setMounted(true);
     const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login/recuitment");
-    }
-  }, [router]);
+    const user = localStorage.getItem("user");
 
-  // 2. Updated Menu Items with specific icons
+    if (token && user) {
+      const isEmployer = !!(user).roles?.some(
+        (role: any) => role.name === "employer",
+      );
+
+      if (isEmployer===false) {
+        router.push("/login/recruitment");
+      }
+    } else {
+      router.push("/login/recruitment");
+    }
+    
+  }, [localStorage, router]);
+
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: "Dashboard", url: "/recruitment/dashboard" },
     { icon: <Briefcase size={20} />, label: "Manage Jobs", url: "/recruitment/job" },
@@ -42,14 +51,7 @@ export default function RecruitmentSidebar() {
     { icon: <Wallet size={20} />, label: "Payroll", url: "/recruitment/underconstriction" },
   ];
 
-  // Prevent hydration mismatch
   if (!mounted) return <aside className="h-screen bg-slate-900 w-64 border-r border-slate-800" />;
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    router.push("/login/recuitment");
-  };
 
   return (
     <aside

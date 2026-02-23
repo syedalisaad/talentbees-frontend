@@ -1,24 +1,45 @@
 "use client";
 
-import Link from 'next/link';
-import { Menu } from 'lucide-react';
-import Image from 'next/image';
+import Link from "next/link";
+import { Menu } from "lucide-react";
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation"; 
 
 export default function Navbar() {
   const [user, setUser] = useState(null);
-  const [isLoaded, setIsLoaded] = useState(false); // To prevent UI flickering
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isEmployee, setIsEmployee] = useState(false);
+  const router = useRouter();
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    
+    router.push("/login");
+    
+    router.refresh();
+  };
 
   useEffect(() => {
-    const userStorage = localStorage.getItem("user"); 
+    const userStorage = localStorage.getItem("user");
+
     if (userStorage) {
-      try {   
-        const parsedUser = JSON.parse(userStorage);
+      try {
+        const parsedUser =(userStorage);
         setUser(parsedUser);
+
+        const isEmp = !!parsedUser.roles?.some(
+          (role: any) => role.name === "employer",
+        );
+
+        setIsEmployee(isEmp);
+
+        console.log("User data found and processed. Is Employer:", isEmp);
       } catch (e) {
         console.error("Failed to parse user from localStorage", e);
-      } 
+      }
     }
+
     setIsLoaded(true);
   }, []);
 
@@ -36,22 +57,46 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
-          {/* Wait until isLoaded is true to show either state. 
-            Use 'user' (state) instead of 'userStorage' (local variable)
-          */}
-          {isLoaded && (
-            user ? (
+          {isLoaded &&
+            (user && isEmployee ? (
               <Link
                 href="/recruitment/dashboard"
-                  className="rounded-full bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition-all golden-bee"
+                className="rounded-full bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition-all golden-bee"
               >
                 Dashboard
               </Link>
+            ) : user && !isEmployee ? (
+              <div className="flex flex-1 items-center justify-center gap-8">
+                <Link
+                  href="/candidate/profile"
+                  className="hidden md:block text-sm font-medium text-slate-900 hover:text-yellow-500 transition-colors"
+                >
+                  My Profile
+                </Link>
+                <Link
+                  href="/candidate/resume"
+                  className="hidden md:block text-sm font-medium text-slate-900 hover:text-yellow-500 transition-colors"
+                >
+                  My Resume
+                </Link>
+                <Link
+                  href="/candidate/applications"
+                  className="hidden md:block text-sm font-medium text-slate-900 hover:text-yellow-500 transition-colors"
+                >
+                  My Applications
+                </Link>
+               <button
+        onClick={handleLogout}
+        className="hidden md:block text-sm font-bold text-red-500 hover:text-red-700 transition-colors uppercase tracking-wider"
+      >
+        Logout
+      </button>
+              </div>
             ) : (
               <>
                 <Link
                   href="/login"
-                  className="hidden md:block text-sm font-medium text-slate-600 hover:text-yellow-300"
+                  className="hidden md:block text-sm font-medium text-slate-900 hover:text-yellow-300"
                 >
                   Sign In
                 </Link>
@@ -62,10 +107,9 @@ export default function Navbar() {
                   Post Jobs
                 </Link>
               </>
-            )
-          )}
-          
-          <button className="md:hidden p-2 text-slate-600">
+            ))}
+
+          <button className="md:hidden p-2 text-slate-900">
             <Menu size={24} />
           </button>
         </div>

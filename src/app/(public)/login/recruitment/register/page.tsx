@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Mail,
   Lock,
@@ -10,32 +10,80 @@ import {
   Building2,
   User,
   CheckCircle2,
-  Globe, 
-  MapPin
+  Globe,
+  MapPin,
+  Loader2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/src/lib/axios";
 import Link from "next/link";
+import { LocationItem } from "@/src/lib/apiInterface";
 
 export default function RecruiterRegisterPage() {
   const router = useRouter();
+  const [hasMounted, setHasMounted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // 1. Form States
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     company_name: "",
     role: "employer",
     password: "",
-    country: "",
-    city: "",
+    country_id: "",
+    city_id: "",
     password_confirmation: "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(""); 
+  const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<any>({});
+  const [countries, setCountries] = useState<LocationItem[]>([]);
+  const [cities, setCities] = useState<LocationItem[]>([]);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [loadingCities, setLoadingCities] = useState(false);
+
+  // Fix 1: Set mounted to true
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Fix 2: Fetch Countries
+  useEffect(() => {
+    const initData = async () => {
+      if (!hasMounted) return;
+      setLoadingInitial(true);
+      try {
+        const response = await api.get("/countries");
+        setCountries(response.data.data);
+      } catch (err) {
+        console.error("Failed to load countries:", err);
+      } finally {
+        setLoadingInitial(false);
+      }
+    };
+    initData();
+  }, [hasMounted]);
+
+  // Fix 3: Fetch Cities
+  useEffect(() => {
+    const fetchCities = async () => {
+      if (!hasMounted || !formData.country_id) {
+        setCities([]);
+        return;
+      }
+      setLoadingCities(true);
+      try {
+        const res = await api.get(`/countries/${formData.country_id}/cities`);
+        setCities(res.data.data);
+      } catch (err) {
+        console.error("Failed to load cities", err);
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+    fetchCities();
+  }, [formData.country_id, hasMounted]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,10 +99,8 @@ export default function RecruiterRegisterPage() {
 
     try {
       const response = await api.post("/register", formData);
-
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.user));
-
       router.push("/verify-email");
     } catch (err: any) {
       if (err.response?.status === 422) {
@@ -68,13 +114,21 @@ export default function RecruiterRegisterPage() {
     }
   };
 
-  // Helper to render error messages
   const ErrorMsg = ({ field }: { field: string }) =>
     fieldErrors[field] ? (
       <p className="text-[10px] font-bold text-red-500 mt-1 ml-1 uppercase animate-in fade-in slide-in-from-top-1">
         {fieldErrors[field][0]}
       </p>
     ) : null;
+
+  if (!hasMounted || loadingInitial) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+        <Loader2 className="animate-spin text-yellow-500 mb-2" size={32} />
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Syncing Signal...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col md:flex-row font-sans antialiased text-slate-900">
@@ -83,8 +137,7 @@ export default function RecruiterRegisterPage() {
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage:
-              "radial-gradient(#FACC15 0.5px, transparent 0.5px)",
+            backgroundImage: "radial-gradient(#FACC15 0.5px, transparent 0.5px)",
             backgroundSize: "24px 24px",
           }}
         />
@@ -127,27 +180,17 @@ export default function RecruiterRegisterPage() {
             </div>
           )}
 
-          <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-4"
-            onSubmit={handleRegister}
-          >
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleRegister}>
             {/* Name */}
             <div className="md:col-span-2 space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Full Name
-              </label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Full Name</label>
               <div className="relative">
-                <User
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.name ? "text-red-400" : "text-slate-300"}`}
-                  size={16}
-                />
+                <User className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.name ? "text-red-400" : "text-slate-300"}`} size={16} />
                 <input
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={`w-full bg-white border ${fieldErrors.name ? "border-red-500 ring-4 ring-red-500/5" : "border-slate-200"} rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-300 text-sm transition-all`}
                   placeholder="John Doe"
                 />
@@ -157,21 +200,14 @@ export default function RecruiterRegisterPage() {
 
             {/* Email */}
             <div className="md:col-span-2 space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Work Email
-              </label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Work Email</label>
               <div className="relative">
-                <Mail
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.email ? "text-red-400" : "text-slate-300"}`}
-                  size={16}
-                />
+                <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.email ? "text-red-400" : "text-slate-300"}`} size={16} />
                 <input
                   type="email"
                   required
                   value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className={`w-full bg-white border ${fieldErrors.email ? "border-red-500 ring-4 ring-red-500/5" : "border-slate-200"} rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-300 text-sm transition-all`}
                   placeholder="hr@company.com"
                 />
@@ -181,117 +217,88 @@ export default function RecruiterRegisterPage() {
 
             {/* Company Name */}
             <div className="md:col-span-2 space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Company
-              </label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Company</label>
               <div className="relative">
-                <Building2
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.company_name ? "text-red-400" : "text-slate-300"}`}
-                  size={16}
-                />
+                <Building2 className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.company_name ? "text-red-400" : "text-slate-300"}`} size={16} />
                 <input
                   type="text"
                   required
                   value={formData.company_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, company_name: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                   className={`w-full bg-white border ${fieldErrors.company_name ? "border-red-500 ring-4 ring-red-500/5" : "border-slate-200"} rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-300 text-sm transition-all`}
                   placeholder="BeeCorp"
                 />
               </div>
               <ErrorMsg field="company_name" />
             </div>
-             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Country
-              </label>
-              <div className="relative">
-                <Globe
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.country ? "text-red-400" : "text-slate-300"}`}
-                  size={16}
-                />
-                <input
-                  type="text"
-                  required
-                  value={formData.country}
-                  onChange={(e) =>
-                    setFormData({ ...formData, country: e.target.value })
-                  }
-                  className={`w-full bg-white border ${fieldErrors.country ? "border-red-500 ring-4 ring-red-500/5" : "border-slate-200"} rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-300 text-sm transition-all`}
-                  placeholder="United States"
-                />
-              </div>
-              <ErrorMsg field="country" />
-            </div>
 
+            {/* Country */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                City
-              </label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Country</label>
               <div className="relative">
-                <MapPin
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.city ? "text-red-400" : "text-slate-300"}`}
-                  size={16}
-                />
-                <input
-                  type="text"
+                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                <select
                   required
-                  value={formData.city}
-                  onChange={(e) =>
-                    setFormData({ ...formData, city: e.target.value })
-                  }
-                  className={`w-full bg-white border ${fieldErrors.city ? "border-red-500 ring-4 ring-red-500/5" : "border-slate-200"} rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-300 text-sm transition-all`}
-                  placeholder="New York"
-                />
+                  value={formData.country_id}
+                  onChange={(e) => setFormData({ ...formData, country_id: e.target.value, city_id: "" })}
+                  className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-400 text-sm appearance-none transition-all cursor-pointer"
+                >
+                  <option value="">Select Territory</option>
+                  {countries.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
               </div>
-              <ErrorMsg field="city" />
+              <ErrorMsg field="country_id" />
             </div>
 
+            {/* City */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">City</label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                <select
+                  required
+                  disabled={!formData.country_id || loadingCities}
+                  value={formData.city_id}
+                  onChange={(e) => setFormData({ ...formData, city_id: e.target.value })}
+                  className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-400 text-sm appearance-none transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <option value="">{loadingCities ? "Locating..." : "Select City"}</option>
+                  {cities.map((city) => (
+                    <option key={city.id} value={city.id}>{city.name}</option>
+                  ))}
+                </select>
+              </div>
+              <ErrorMsg field="city_id" />
+            </div>
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Password
-              </label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Password</label>
               <div className="relative">
-                <Lock
-                  className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.password ? "text-red-400" : "text-slate-300"}`}
-                  size={16}
-                />
+                <Lock className={`absolute left-4 top-1/2 -translate-y-1/2 ${fieldErrors.password ? "text-red-400" : "text-slate-300"}`} size={16} />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className={`w-full bg-white border ${fieldErrors.password ? "border-red-500 ring-4 ring-red-500/5" : "border-slate-200"} rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-300 text-sm transition-all`}
                 />
               </div>
               <ErrorMsg field="password" />
             </div>
-           
+
             {/* Confirm Password */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Confirm
-              </label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Confirm</label>
               <div className="relative">
-                <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
-                  size={16}
-                />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={formData.password_confirmation}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      password_confirmation: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })}
                   className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-11 outline-none focus:border-yellow-300 text-sm transition-all"
                 />
                 <button
@@ -315,12 +322,7 @@ export default function RecruiterRegisterPage() {
 
           <p className="text-center mt-8 text-xs font-bold text-slate-500 uppercase tracking-tight">
             Already have a portal?{" "}
-            <Link
-              href="/recruitment/login"
-              className="text-yellow-500 hover:underline"
-            >
-              Log in
-            </Link>
+            <Link href="/recruitment/login" className="text-yellow-500 hover:underline">Log in</Link>
           </p>
         </div>
       </div>

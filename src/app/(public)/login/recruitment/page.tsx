@@ -30,7 +30,6 @@ export default function RecruiterLoginPage() {
 
     try {
       const response = await api.post("/login", { email, password });
-      console.log("Login response:", response.data);
 
       localStorage.setItem("token", response.data.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
@@ -182,7 +181,7 @@ export default function RecruiterLoginPage() {
           <p className="text-center mt-8 text-xs font-bold text-slate-500 tracking-tight">
             Don't have an account?{" "}
             <a
-              href="/login/recuitment/register"
+              href="/login/recruitment/register"
               className="text-yellow-300 hover:underline"
             >
               Register here

@@ -26,7 +26,7 @@ export default function VerifyEmailPage() {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        const user = JSON.parse(storedUser);
+        const user = (storedUser);
         setUserEmail(user.email || "");
       } catch (e) {
         console.error("Local storage parse error:", e);
