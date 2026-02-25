@@ -1,54 +1,87 @@
-import React from 'react';
-import { Search, MapPin, Briefcase, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+"use client";
 
-// Sample data - eventually this comes from your Laravel API
+import React, { useState } from "react";
+import { Search, MapPin, Briefcase, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
 const categories = [
-  { name: 'Software', count: '1.2k+', icon: <Briefcase className="w-5 h-5" /> },
-  { name: 'Design', count: '800+', icon: <Briefcase className="w-5 h-5" /> },
-  { name: 'Marketing', count: '500+', icon: <Briefcase className="w-5 h-5" /> },
+  { name: "Software", count: "1.2k+" },
+  { name: "Design", count: "800+" },
+  { name: "Marketing", count: "500+" },
 ];
 
 export default function HomePage() {
+  const router = useRouter();
+
+  const [jobTitle, setJobTitle] = useState("");
+  const [location, setLocation] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = () => {
+    if (!jobTitle.trim() && !location.trim()) return;
+
+    setLoading(true);
+
+    const params = new URLSearchParams();
+    if (jobTitle.trim()) params.append("job_title", jobTitle.trim());
+    if (location.trim()) params.append("location", location.trim());
+
+    router.push(`/jobs?${params.toString()}`);
+  };
+
   return (
     <main className="min-h-screen bg-white">
-      {/* 1. HERO SECTION (SEO: H1 Heading) */}
+      {/* HERO SECTION */}
       <section className="relative bg-slate-50 py-20 px-6">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight">
-            Find your next <span className="text-yellow-300">dream job</span>
+        <div className="max-w-5xl mx-auto text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
+            Find Your Next Career Opportunity
           </h1>
-          <p className="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
-            Connecting the best talent with top companies. Explore thousands of
-            job opportunities across the globe.
+          <p className="text-slate-500 mt-4">
+            Search thousands of jobs across multiple industries
           </p>
+        </div>
 
-          {/* 2. SEARCH BAR (UX: Easy Access) */}
-          <div className="max-w-4xl mx-auto bg-white p-2 rounded-2xl shadow-xl border border-slate-200 flex flex-col md:flex-row gap-2">
-            <div className="flex-1 flex items-center px-4 py-2 border-b md:border-b-0 md:border-r border-slate-100">
-              <Search className="text-slate-400 mr-2" size={20} />
-              <input
-                type="text"
-                placeholder="Job title or keyword"
-                className="w-full outline-none text-slate-700"
-              />
-            </div>
-            <div className="flex-1 flex items-center px-4 py-2">
-              <MapPin className="text-slate-400 mr-2" size={20} />
-              <input
-                type="text"
-                placeholder="City or remote"
-                className="w-full outline-none text-slate-700"
-              />
-            </div>
-            <button className="bg-slate-800 hover:bg-slate-700 text-yellow-300 px-8 py-4 rounded-xl font-semibold transition-all">
-              Search Jobs
-            </button>
+        <div className="max-w-4xl mx-auto bg-white p-2 rounded-2xl shadow-xl border border-slate-200 flex flex-col md:flex-row gap-2">
+          {/* Job Title */}
+          <div className="flex-1 flex items-center px-4 py-3 border-b md:border-b-0 md:border-r border-slate-100">
+            <Search className="text-slate-400 mr-2" size={20} />
+            <input
+              type="text"
+              placeholder="Job title or keyword"
+              className="w-full outline-none text-slate-700"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            />
           </div>
+
+          {/* Location */}
+          <div className="flex-1 flex items-center px-4 py-3">
+            <MapPin className="text-slate-400 mr-2" size={20} />
+            <input
+              type="text"
+              placeholder="City or remote"
+              className="w-full outline-none text-slate-700"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            />
+          </div>
+
+          {/* Button */}
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            className="bg-slate-800 hover:bg-slate-700 disabled:opacity-70 text-yellow-300 px-8 py-3 rounded-xl font-semibold transition-all"
+          >
+            {loading ? "Searching..." : "Search Jobs"}
+          </button>
         </div>
       </section>
 
-      {/* 3. CATEGORIES SECTION */}
+      {/* CATEGORIES SECTION */}
       <section className="py-20 max-w-6xl mx-auto px-6">
         <div className="flex justify-between items-end mb-10">
           <div>
@@ -59,9 +92,10 @@ export default function HomePage() {
               Find the right role based on your interest
             </p>
           </div>
+
           <Link
             href="/jobs"
-            className="group text-yellow-300 font-normal md:font-bold flex items-center transition-colors duration-300"
+            className="group text-yellow-400 font-semibold flex items-center transition-colors duration-300"
           >
             <span className="group-hover:text-slate-800">View all</span>
             <ArrowRight
@@ -75,12 +109,19 @@ export default function HomePage() {
           {categories.map((cat) => (
             <div
               key={cat.name}
+              onClick={() =>
+                router.push(`/jobs?category=${encodeURIComponent(cat.name)}`)
+              }
               className="p-6 border border-slate-100 rounded-2xl hover:border-slate-200 hover:shadow-lg transition-all cursor-pointer group"
             >
               <div className="w-12 h-12 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-yellow-300 group-hover:text-white transition-colors">
-                {cat.icon}
+                <Briefcase className="w-5 h-5" />
               </div>
-              <h3 className="font-bold text-lg text-slate-800">{cat.name}</h3>
+
+              <h3 className="font-bold text-lg text-slate-800">
+                {cat.name}
+              </h3>
+
               <p className="text-slate-500 text-sm mt-1">
                 {cat.count} open positions
               </p>

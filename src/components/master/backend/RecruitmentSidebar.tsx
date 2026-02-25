@@ -26,7 +26,7 @@ export default function RecruitmentSidebar() {
   useEffect(() => {
     setMounted(true);
     const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
+    const user = JSON.parse(localStorage.getItem("user") || "null");
 
     if (token && user) {
       const isEmployer = !!(user).roles?.some(

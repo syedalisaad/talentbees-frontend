@@ -21,7 +21,7 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    const userStorage = localStorage.getItem("user");
+    const userStorage = JSON.parse(localStorage.getItem("user") || "null");
 
     if (userStorage) {
       try {
@@ -34,10 +34,8 @@ export default function Navbar() {
 
         setIsEmployee(isEmp);
 
-        console.log("User data found and processed. Is Employer:", isEmp);
       } catch (e) {
-        console.error("Failed to parse user from localStorage", e);
-      }
+        console.error("Error parsing user from localStorage:", e);}
     }
 
     setIsLoaded(true);

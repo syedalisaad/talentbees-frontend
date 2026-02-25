@@ -23,7 +23,7 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     setMounted(true);
-    const storedUser = localStorage.getItem("user");
+    const storedUser = JSON.parse(localStorage.getItem("user") || "null");
     if (storedUser) {
       try {
         const user = (storedUser);

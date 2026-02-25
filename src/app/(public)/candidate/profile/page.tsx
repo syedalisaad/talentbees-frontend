@@ -18,12 +18,12 @@ import api from "@/src/lib/axios";
 import { useRouter } from "next/navigation";
 import { LocationItem } from "@/src/lib/apiInterface";
 import DatePicker from "react-datepicker";
+import toast from 'react-hot-toast';
 
 export default function CandidateProfileForm() {
   const router = useRouter();
   const [hasMounted, setHasMounted] = useState(false);
 
-  // --- Profile State ---
   const [formData, setFormData] = useState({
     phone_number: "",
     cover_letter: "",
@@ -48,6 +48,7 @@ export default function CandidateProfileForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [resumePreview, setResumePreview] = useState<string | null>(null);
 
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(
     null,
@@ -67,13 +68,16 @@ export default function CandidateProfileForm() {
         const countryRes = await api.get("/countries");
         setCountries(countryRes.data.data);
 
-        const profileRes = await api.get("/candidate-profile/me");
-        if (profileRes.data.data) {
-          const p = profileRes.data.data;
+        const CandidateProfileRes = await api.get("/candidate-profile-me");
+        if (CandidateProfileRes.data.data) {
+          const CandidateProfile = CandidateProfileRes.data.data;
+          console.log("Fetched Candidate Profile:", CandidateProfile);
+          setProfilePhotoPreview(CandidateProfile.profile_photo_url || null);
+          setResumePreview(CandidateProfile.active_resume.resume_url || null);
           setFormData({
-            ...p,
-            country_id: p.country_id?.toString() || "",
-            city_id: p.city_id?.toString() || "",
+            ...CandidateProfile,
+            country_id: CandidateProfile.country_id?.toString() || "",
+            city_id: CandidateProfile.city_id?.toString() || "",
           });
         }
       } catch (err) {
@@ -131,7 +135,6 @@ export default function CandidateProfileForm() {
     payload.append("expected_salary", formData.expected_salary);
     payload.append("current_salary", formData.current_salary);
     payload.append("open_to_work", formData.open_to_work ? "1" : "0");
-    console.log("Payload before files:", resumeFile, photoFile, formData);
 
     if (resumeFile) payload.append("resume", resumeFile);
     if (photoFile) payload.append("profile_photo_path", photoFile);
@@ -143,7 +146,7 @@ export default function CandidateProfileForm() {
     try {
       payload.append("_method", "POST");
       await api.post("/candidate-profile", payload);
-      // router.push("/candidate/profile");
+      toast.success("Profile updated successfully!");
     } catch (err: any) {
       if (err.response?.data?.errors) setErrors(err.response.data.errors);
     } finally {
@@ -203,7 +206,6 @@ export default function CandidateProfileForm() {
           issuing_organization: "",
           certificate_id: "",
           issue_date: "",
-          expiry_date: "",
           link: "",
         },
       ],
@@ -231,7 +233,6 @@ export default function CandidateProfileForm() {
   };
  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0] || null;
-  console.log("Selected file:", file);
   if (!file) return;
 
   setPhotoFile(file);
@@ -448,17 +449,51 @@ export default function CandidateProfileForm() {
                   <input
                     type="file"
                     accept=".pdf"
-                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (!file) return;
+
+                      // Only allow PDF
+                      if (file.type !== "application/pdf") {
+                        toast.error("Only PDF files are allowed.");
+                        return;
+                      }
+
+                      // Max 2MB validation
+                      if (file.size > 2 * 1024 * 1024) {
+                        toast.error("File size must be less than 2MB.");
+                        return;
+                      }
+
+                      setResumeFile(file);
+                      setResumePreview(URL.createObjectURL(file));
+                    }}
                     className="absolute inset-0 opacity-0 cursor-pointer"
                   />
                   <div className="text-center">
                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-tighter">
                       {resumeFile
                         ? resumeFile.name
-                        : "Drop PDF here or click to upload"}
+                        : resumePreview
+                          ? "Resume uploaded"
+                          : "Drop PDF here or click to upload"}
                     </p>
+                    
                   </div>
+             
                 </div>
+                     {resumePreview && (
+                    <div className="mt-3 text-center">
+                      <a
+                        href={resumePreview}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-black text-yellow-500 underline uppercase"
+                      >
+                        View Resume
+                      </a>
+                    </div>
+                  )}
               </div>
             </div>
           </section>
@@ -797,29 +832,6 @@ export default function CandidateProfileForm() {
                         selected={parseDate(cert.issue_date)}
                         onChange={(date) =>
                           updateCertification(i, "issue_date", formatDate(date))
-                        }
-                        dateFormat="dd/MM/yyyy"
-                        placeholderText="Select Start Date"
-                        portalId="root-portal"
-                        popperPlacement="bottom-start"
-                        showYearDropdown
-                        scrollableYearDropdown
-                        yearDropdownItemNumber={15}
-                        className={`${inputStyle} pl-10 cursor-pointer hover:border-slate-300 focus:ring-2 focus:ring-yellow-400/20 w-full`}
-                        calendarClassName="premium-calendar-popup"
-                        wrapperClassName="w-full"
-                      />
-                    </div>
-                    <div className="col-span-4">
-                      <label className={labelStyle}>Expiry Date</label>
-                      <DatePicker
-                        selected={parseDate(cert.expiry_date)}
-                        onChange={(date) =>
-                          updateCertification(
-                            i,
-                            "expiry_date",
-                            formatDate(date),
-                          )
                         }
                         dateFormat="dd/MM/yyyy"
                         placeholderText="Select Start Date"
