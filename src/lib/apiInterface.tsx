@@ -33,7 +33,7 @@ export interface ApiResponse<T> {
 export interface Job {
   id: number;
   title: string;  
-  category: string;
+  category_name: string;
   employment_type: EmploymentType;
   country_id: number;   
   city_id: number;
@@ -47,11 +47,15 @@ export interface Job {
   languages?: language[];
   country?: country;
   city?: city;
+  screening_questions?: ScreeningQuestion[];
   company?: Company;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 }
-
+export interface ScreeningQuestion {
+  question: string;
+  field_type: string; 
+}
 export interface skill {
   id: number;
   name: string;

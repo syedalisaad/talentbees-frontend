@@ -1,132 +1,390 @@
 "use client";
 
-import React, { useState } from "react";
-import { Globe2, Plus, X, Save } from "lucide-react";
-import { Job } from "@/src/lib/apiInterface";
+import React, { useEffect, useState } from "react";
+import { Plus, X, Save, Currency } from "lucide-react";
+import { Job, LocationItem } from "@/src/lib/apiInterface";
+import api from "@/src/lib/axios";
+import { useRouter } from "next/navigation";
 
-export default function PostJobForm() {
-  const [formData, setFormData] = useState<Job>({
+const CURRENCIES = [
+  "USD", // US Dollar
+  "EUR", // Euro
+  "GBP", // British Pound
+  "JPY", // Japanese Yen
+  "CNY", // Chinese Yuan
+  "AUD", // Australian Dollar
+  "CAD", // Canadian Dollar
+  "CHF", // Swiss Franc
+  "AED", // UAE Dirham
+  "SAR", // Saudi Riyal
+  "PKR", // Pakistani Rupee
+  "INR", // Indian Rupee
+  "SGD", // Singapore Dollar
+  "HKD", // Hong Kong Dollar
+  "NZD", // New Zealand Dollar
+  "TRY", // Turkish Lira
+  "ZAR", // South African Rand
+  "SEK", // Swedish Krona
+  "NOK", // Norwegian Krone
+  "KRW", // South Korean Won
+];
+export default function PostJobForm({ jobId }: { jobId?: string }) {
+  const router = useRouter();
+    const [formData, setFormData] = useState<Job>({
     title: "",
-    category: "",
-    type: "",
-    country: "",
-    city: "",
-    isRemote: false,
-    minSalary: 0,
-    maxSalary: 0,
+    category_name: "",
+    job_type: "",
+    country_id: 0,
+    city_id: 0,
+    is_remote: false,
+    salary_max: 0,
+    salary_min: 0,
     description: "",
     skills: [],
     languages: [],
+    screening_questions: [],
   });
-
+  const [hasMounted, setHasMounted] = useState(false);
   const [skillInput, setSkillInput] = useState("");
   const [langInput, setLangInput] = useState("");
+  const [countries, setCountries] = useState<LocationItem[]>([]);
+  const [cities, setCities] = useState<LocationItem[]>([]);
+
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<any>({});
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError("");
+    
+    try {
+      let response;
+      if (jobId) {
+        response = await api.put(`/company-job-postings/${jobId}`, formData);
+      } else {
+        response = await api.post("/company-job-postings", formData);
+      }
+      
+      router.push('/recruitment/job');
+    } catch (err: any) {
+      console.error("Submission error:", err);
+      if (err.response?.data?.errors) {
+        setFieldErrors(err.response.data.errors);
+      }
+      setError(err.response?.data?.message || "Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 3. Optional: If editing, fetch existing data on mount
+  useEffect(() => {
+    if (jobId && hasMounted) {
+      const fetchJobData = async () => {
+        try {
+          const res = await api.get(`/company-job-postings/${jobId}`);
+          setFormData(res.data.data);
+        } catch (err) {
+          console.error("Failed to load job data for editing");
+        }
+      };
+      fetchJobData();
+    }
+  }, [jobId, hasMounted]);
+
+  const addQuestion = () => {
+    setFormData({
+      ...formData,
+      screening_questions: [
+        ...formData.screening_questions,
+        { question: "", field_type: "text" },
+      ],
+    });
+  };
+
+  const removeQuestion = (index: number) => {
+    setFormData({
+      ...formData,
+      screening_questions: formData.screening_questions.filter(
+        (_, i) => i !== index,
+      ),
+    });
+  };
+  useEffect(() => {
+    const initData = async () => {
+      if (!hasMounted) return;
+      setLoadingInitial(true);
+      try {
+        const response = await api.get("/countries");
+        setCountries(response.data.data);
+      } catch (err) {
+        console.error("Failed to load countries:", err);
+      } finally {
+        setLoadingInitial(false);
+      }
+    };
+    initData();
+  }, [hasMounted]);
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      if (!hasMounted || !formData.country_id) {
+        setCities([]);
+        return;
+      }
+
+      setLoadingCities(true);
+      try {
+        const res = await api.get(`/countries/${formData.country_id}/cities`);
+        setCities(res.data.data);
+      } catch (err) {
+        console.error("Failed to load cities", err);
+      } finally {
+        setLoadingCities(false);
+      }
+    };
+    fetchCities();
+  }, [formData.country_id, hasMounted]);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value, type } = e.target;
+
+    if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData({ ...formData, [name]: checked });
+    } else if (type === "number") {
+      setFormData({ ...formData, [name]: Number(value) });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
 
   const addSkill = () => {
-    if (skillInput && !formData.skills.includes(skillInput)) {
-      setFormData({ ...formData, skills: [...formData.skills, skillInput] });
+    if (skillInput.trim() && !formData.skills.includes(skillInput.trim())) {
+      setFormData({
+        ...formData,
+        skills: [...formData.skills, skillInput.trim()],
+      });
       setSkillInput("");
     }
   };
+
   const addLanguage = () => {
-    if (langInput && !formData.languages.includes(langInput)) {
-      setFormData({ ...formData, languages: [...formData.languages, langInput] });
+    if (langInput.trim() && !formData.languages.includes(langInput.trim())) {
+      setFormData({
+        ...formData,
+        languages: [...formData.languages, langInput.trim()],
+      });
       setLangInput("");
-    }   
+    }
   };
 
-  const inputStyle = "w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 outline-none focus:border-yellow-400 focus:bg-white transition-all font-bold text-slate-700 text-[12px] placeholder:font-normal placeholder:text-slate-300";
-  const labelStyle = "text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-0.5 block";
+  const updateQuestion = (index: number, field: string, value: string) => {
+  const updatedQuestions = [...formData.screening_questions];
+  updatedQuestions[index] = { ...updatedQuestions[index], [field]: value };
+  setFormData({ ...formData, screening_questions: updatedQuestions });
+};
+
+const ValidationError = ({ errors, field }: { errors: any; field: string }) => {
+  if (!errors || !errors[field]) return null;
+  return (
+    <span className="text-[10px] font-bold text-red-500 mt-1 ml-1 animate-in fade-in slide-in-from-top-1">
+      {errors[field][0]}
+    </span>
+  );
+};
+
+  const inputStyle =
+    "w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 outline-none focus:border-yellow-400 focus:bg-white transition-all font-bold text-slate-700 text-[12px]";
+
+  const labelStyle =
+    "text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1 mb-0.5 block";
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans">
       <div className="max-w-5xl mx-auto">
-        
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-black text-slate-900 tracking-tight">New <span className="text-yellow-500">Job</span></h1>
-          <button className="bg-slate-900 hover:bg-yellow-400 hover:text-slate-900 text-white px-4 py-2 rounded-lg font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2">
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">
+            New <span className="text-yellow-500">Job</span>
+          </h1>
+
+          <button
+            onClick={() => handleSubmit()}
+            className="bg-slate-900 hover:bg-yellow-400 hover:text-slate-900 text-white px-4 py-2 rounded-lg font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2"
+          >
             <Save size={14} /> Publish
           </button>
         </div>
+          <div className="flex flex-col gap-4 ml-6 w-full flex-1 ">
+            <section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-5">
+              <div className="grid grid-cols-12 gap-3">
+                <div className="col-span-8">
+                  <label className={labelStyle}>Job Title</label>
+                  <input
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    type="text"
+                    className={inputStyle}
+                  />
+                  <ValidationError errors={fieldErrors} field="title" />
+                </div>
 
-        <div className="space-y-3">
-          {/* Section 1: Core Details */}
-          <section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-3">
-            
-            <div className="grid grid-cols-12 gap-3">
-              <div className="col-span-8">
-                <label className={labelStyle}>Job Title</label>
-                <input type="text" placeholder="Senior Laravel Developer" className={inputStyle} />
-              </div>
-              <div className="col-span-4">
-                <label className={labelStyle}>Category</label>
-                <input type="text" placeholder="Engineering" className={inputStyle} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-4 gap-3">
-              <div>
-                <label className={labelStyle}>Type</label>
-                <select className={inputStyle}>
-                  <option>Full-Time</option>
-                  <option>Contract</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelStyle}>Country</label>
-                <select className={inputStyle}>
-                  <option>Pakistan</option>
-                  <option>UAE</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelStyle}>City</label>
-                <select className={inputStyle}>
-                  <option>Karachi</option>
-                  <option>Dubai</option>
-                </select>
-              </div>
-              <div className="flex items-end pb-1">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" className="w-4 h-4 accent-slate-900" />
-                  <span className="text-[10px] font-black text-slate-500 group-hover:text-slate-900 uppercase">Remote</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className={labelStyle}>Min Salary</label>
-                <div className="relative">
-                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">$</span>
-                   <input type="number" className={`${inputStyle} pl-5`} />
+                <div className="col-span-4">
+                  <label className={labelStyle}>Category</label>
+                  <input
+                    name="category_name"
+                    value={formData.category_name}
+                    onChange={handleChange}
+                    type="text"
+                    className={inputStyle}
+                  />
+                  <ValidationError errors={fieldErrors} field="category_name" />
                 </div>
               </div>
-              <div>
-                <label className={labelStyle}>Max Salary</label>
-                <div className="relative">
-                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400">$</span>
-                   <input type="number" className={`${inputStyle} pl-5`} />
+
+              {/* Type / Country / City */}
+              <div className="grid grid-cols-4 gap-3">
+                <div>
+                  <label className={labelStyle}>Job Type</label>
+                  <select
+                    name="job_type"
+                    value={formData.job_type}
+                    onChange={handleChange}
+                    className={inputStyle}
+                  >
+                    <option value="">Select</option>
+                    <option value="full-time">Full-Time</option>
+                    <option value="contract">Contract</option>
+                    <option value="part-time">Part-Time</option>
+                    <option value="internship">Internship</option>
+                  </select>
+                  <ValidationError errors={fieldErrors} field="job_type" />
+
+                </div>
+
+                <div>
+                  <label className={labelStyle}>Country</label>
+                  <select
+                    name="country_id"
+                    value={formData.country_id}
+                    onChange={handleChange}
+                    className={inputStyle}
+                  >
+                    <option value="">Select Territory</option>
+                    {countries.map((country) => (
+                      <option key={country.id} value={country.id}>
+                        {country.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ValidationError errors={fieldErrors} field="country_id" />
+                </div>
+
+                <div>
+                  <label className={labelStyle}>City</label>
+                  <select
+                    name="city_id"
+                    value={formData.city_id}
+                    onChange={handleChange}
+                    disabled={!formData.country_id || loadingCities}
+                    className={inputStyle}
+                  >
+                    <option value="">
+                      {loadingCities ? "Locating..." : "Select City"}
+                    </option>
+                    {cities.map((city) => (
+                      <option key={city.id} value={city.id}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ValidationError errors={fieldErrors} field="city_id" />
+                </div>
+
+                <div className="flex items-end pb-1">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      name="is_remote"
+                      checked={formData.is_remote}
+                      onChange={handleChange}
+                    />
+                    <span className="text-[10px] font-black uppercase">
+                      Remote
+                    </span>
+                  </label>
                 </div>
               </div>
-              <div>
-                <label className={labelStyle}>Currency</label>
-                <select className={inputStyle}>
-                  <option>USD</option>
-                  <option>PKR</option>
-                </select>
+
+              <div className="grid grid-cols-12 gap-3">
+                <div className="col-span-4">
+                  <label className={labelStyle}>Min Salary</label>
+                  <input
+                    name="salary_min"
+                    type="number"
+                    value={formData.salary_min}
+                    onChange={handleChange}
+                    className={inputStyle}
+                  />
+                </div>
+
+                <div className="col-span-4">
+                  <label className={labelStyle}>Max Salary</label>
+                  <input
+                    name="salary_max"
+                    type="number"
+                    value={formData.salary_max}
+                    onChange={handleChange}
+                    className={inputStyle}
+                  />
+                </div>
+                <div className="col-span-4">
+                  <label className={labelStyle}>Currency</label>
+
+                  <select
+                    name="currency"
+                    value={formData.currency}
+                    onChange={handleChange}
+                    className={inputStyle}
+                  >
+                    <option value="">Select Currency</option>
+                    {CURRENCIES.map((currency) => (
+                      <option key={currency} value={currency}>
+                        {currency}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-          </section>
 
-          {/* Section 2: Description */}
-          <section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-            <label className={labelStyle}>Description</label>
-            <textarea rows={3} placeholder="Brief role overview..." className={`${inputStyle} resize-none font-medium text-slate-600`}></textarea>
-          </section>
-
-          <div className="grid grid-cols-2 gap-3">
-            <section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              <div>
+                <label className={labelStyle}>Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={3}
+                  className={`${inputStyle} resize-none`}
+                />
+              </div>
+              <ValidationError errors={fieldErrors} field="description" />
+            </section>
+            <div className="flex gap-2">
+            <section className="flex-1 min-w-[400px] bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              {" "}
               <label className={labelStyle}>Skills</label>
               <div className="relative mb-2">
                 <input
@@ -134,22 +392,39 @@ export default function PostJobForm() {
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && addSkill()}
-                  placeholder="Press enter..."
+                  placeholder="Please add skills and press enter..."
                   className={inputStyle}
                 />
-                <Plus size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" />
+                <Plus
+                  size={14}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"
+                />
+                <ValidationError errors={fieldErrors} field="skills" />
               </div>
               <div className="flex flex-wrap gap-1">
-                {formData.skills.map((skill) => (
-                  <span key={skill} className="bg-yellow-200 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1">
+                {formData?.skills?.map((skill) => (
+                  <span
+                    key={skill}
+                    className="bg-yellow-200 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1"
+                  >
                     {skill}
-                    <X size={8} className="cursor-pointer text-slate-900 " onClick={() => setFormData({...formData, skills: formData.skills.filter(s => s !== skill)})} />
+                    <X
+                      size={8}
+                      className="cursor-pointer text-slate-900 "
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          skills: formData.skills.filter((s) => s !== skill),
+                        })
+                      }
+                    />
                   </span>
                 ))}
-            </div>
-          </section>
+              </div>
+            </section>
 
-            <section className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+            <section className="flex-1 min-w-[400px] bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              {" "}
               <label className={labelStyle}>Languages</label>
               <div className="relative mb-2">
                 <input
@@ -157,25 +432,111 @@ export default function PostJobForm() {
                   value={langInput}
                   onChange={(e) => setLangInput(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && addLanguage()}
-                  placeholder="Press enter..."
+                  placeholder="Enter language (English, French, Spanish) and press enter..."
                   className={inputStyle}
                 />
-                <Plus size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300" />
-                </div>
+                <Plus
+                  size={14}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"
+                />
+                <ValidationError errors={fieldErrors} field="languages" />
+              </div>
               <div className="flex flex-wrap gap-1">
                 {formData.languages.map((lang) => (
-                  <span key={lang} className="bg-yellow-200 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1">
+                  <span
+                    key={lang}
+                    className="bg-yellow-200 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1"
+                  >
                     {lang}
-                    <X size={8} className="cursor-pointer text-slate-900 " onClick={() => setFormData({...formData, languages: formData.languages.filter(l => l !== lang)})} />
+                    <X
+                      size={8}
+                      className="cursor-pointer text-slate-900 "
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          languages: formData.languages.filter(
+                            (l) => l !== lang,
+                          ),
+                        })
+                      }
+                    />
                   </span>
                 ))}
-             </div>
-          </section>
+              </div>
+            </section>
+            </div>
+            <section className="flex-1 min-w-[400px] bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              {" "}
+              <div className="flex items-center justify-between mb-3">
+                <label className={labelStyle}>Screening Questions</label>
+                <button
+                  type="button"
+                  onClick={addQuestion}
+                  className="text-[9px] font-black uppercase tracking-widest bg-slate-100 hover:bg-yellow-400 px-3 py-1 rounded-md transition-all flex items-center gap-1"
+                >
+                  <Plus size={10} /> Add Question
+                </button>
+              </div>
+              <div className="space-y-2">
+                {formData.screening_questions.map((q, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-2 items-end bg-slate-50 p-2 rounded-xl border border-slate-100"
+                  >
+                    <div className="flex-[3]">
+                      <label className="text-[8px] font-bold uppercase text-slate-400 mb-1 block">
+                        Question
+                      </label>
+                      <input
+                        type="text"
+                        value={q.question}
+                        onChange={(e) =>
+                          updateQuestion(index, "question", e.target.value)
+                        }
+                        placeholder="e.g. How many years of experience do you have?"
+                        className={inputStyle}
+                      />
+                    </div>
 
-           
+                    <div className="flex-1">
+                      <label className="text-[8px] font-bold uppercase text-slate-400 mb-1 block">
+                        Response Type
+                      </label>
+                      <select
+                        value={q.field_type}
+                        onChange={(e) =>
+                          updateQuestion(index, "field_type", e.target.value)
+                        }
+                        className={inputStyle}
+                      >
+                        <option value="text">Text</option>
+                        <option value="number">Number</option>
+                        <option value="boolean">Yes/No (Radio)</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => removeQuestion(index)}
+                      className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+
+                {formData.screening_questions.length === 0 && (
+                  <div className="text-center py-4 border-2 border-dashed border-slate-100 rounded-xl">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                      No screening questions added
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
           </div>
         </div>
       </div>
-    </div>
+   
   );
 }

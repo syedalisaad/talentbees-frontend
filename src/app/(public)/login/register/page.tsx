@@ -217,8 +217,8 @@ export default function CandidateRegisterPage() {
                   className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-11 pr-4 outline-none focus:border-yellow-400 text-sm appearance-none transition-all cursor-pointer"
                 >
                   <option value="">Select Territory</option>
-                  {countries.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
+                  {countries.map((country) => (
+                    <option key={country.id} value={country.id}>{country.name}</option>
                   ))}
                 </select>
               </div>
