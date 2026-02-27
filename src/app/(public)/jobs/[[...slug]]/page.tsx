@@ -8,7 +8,6 @@ import {
   XCircle,
   Bookmark,
   Send,
-  ExternalLink,
   Share2,
   Briefcase,
   Building2,
@@ -33,8 +32,9 @@ const SALARY_OPTIONS = [
   { id: "s4", name: "$10k+" },
 ];
 
-export default function JobsPage() {
+export default function JobsPage({ params }: { params: { slug: string } }) {
   const router = useRouter();
+  const resolvedParams = React.use(params);
   const searchParams = useSearchParams();
 
   const [selectedJobTypes, setSelectedJobTypes] = useState<any[]>([]);
@@ -50,17 +50,25 @@ export default function JobsPage() {
     setSelectedJobTypes([]);
     setSelectedSalaries([]);
   };
+  const slug = resolvedParams?.slug?.[0]??''; 
 
   const handleSearch = () => {
     if (!jobTitle.trim() && !location.trim()) return;
 
     setLoading(true);
 
-    const params = new URLSearchParams();
-    if (jobTitle.trim()) params.append("job_title", jobTitle.trim());
-    if (location.trim()) params.append("location", location.trim());
+    const params_url = new URLSearchParams();
+    if (jobTitle.trim()) params_url.append("job_title", jobTitle.trim());
+    if (location.trim()) params_url.append("location", location.trim());
 
-    router.push(`/jobs?${params.toString()}`);
+    router.push(`/jobs/${slug}?${params_url.toString()}`);
+  };
+
+
+
+  const handleJobClick = (job: Job) => {
+    setSelectedJob(job);
+    router.push(`/jobs/${job.slug}`, { scroll: false });
   };
 
   const fetchJobs = async () => {
@@ -74,8 +82,6 @@ export default function JobsPage() {
           page: searchParams.get("page") || 1,
         },
       });
-
-      console.log("Fetched Jobs:", response.data);
 
       setJobs(response.data.data);
     } catch (error) {
@@ -92,8 +98,32 @@ export default function JobsPage() {
     searchParams.get("location"),
     searchParams.get("page"),
   ]);
-      
 
+  useEffect(() => {
+    if (slug && jobs.length > 0) {
+      const jobFromSlug = jobs.find(j => j.slug === slug);
+      console.log(jobFromSlug);
+      if (jobFromSlug) {
+        setSelectedJob(jobFromSlug);
+      }
+    } else if (!slug) {
+      setSelectedJob(jobs[0]); 
+    }
+  }, [slug, jobs]);
+
+  const JobCardSkeleton = () => (
+    <div className="p-6 rounded-[24px] border-2 border-slate-100 bg-white animate-pulse">
+      <div className="flex justify-between mb-4">
+        <div className="h-6 w-2/3 bg-slate-200 rounded-md" />
+        <div className="h-5 w-5 bg-slate-100 rounded-full" />
+      </div>
+      <div className="h-4 w-1/2 bg-slate-100 rounded-md mb-4" />
+      <div className="flex justify-between items-center pt-4 border-t border-slate-50">
+        <div className="h-5 w-20 bg-slate-900/10 rounded-md" />
+        <div className="h-5 w-12 bg-slate-200 rounded-md" />
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen flex flex-col font-sans antialiased text-slate-600">
@@ -184,56 +214,57 @@ export default function JobsPage() {
                 Live Openings ({jobs.length})
               </h2>
             </div>
-
-            {jobs.map((job) => (
-              <div
-                key={job.id}
-                onClick={() => setSelectedJob(job)}
-                className={`group p-6 rounded-[24px] border-2 cursor-pointer transition-all duration-300 relative ${
-                  selectedJob?.id === job.id
-                    ? "border-yellow-300 bg-white shadow-xl ring-1 ring-yellow-100"
-                    : "border-transparent bg-white hover:border-slate-200 shadow-sm"
-                }`}
-              >
-                <div
-                  className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full transition-all duration-500 ${selectedJob?.id === job.id ? "bg-yellow-300 scale-100" : "bg-transparent scale-0"}`}
-                />
-
-                <div className="flex justify-between items-start mb-3">
-                  <h3
-                    className={`text-lg font-black transition-colors ${selectedJob?.id === job.id ? "text-slate-900" : "text-slate-600 group-hover:text-yellow-600"}`}
+            {loading
+              ? // Show 4 skeleton cards while loading
+                [...Array(4)].map((_, i) => <JobCardSkeleton key={i} />)
+              : jobs.map((job) => (
+                  <div
+                    key={job.id}
+                    onClick={() => handleJobClick(job)}
+                    className={`group p-6 rounded-[24px] border-2 cursor-pointer transition-all duration-300 relative ${
+                      selectedJob?.id === job.id
+                        ? "border-yellow-300 bg-white shadow-xl ring-1 ring-yellow-100"
+                        : "border-transparent bg-white hover:border-slate-200 shadow-sm"
+                    }`}
                   >
-                    {job.title}
-                  </h3>
-                  <button className="text-slate-300 hover:text-yellow-300 transition-colors">
-                    <Bookmark size={18} />
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-2 text-slate-500 text-sm font-medium mb-4">
-                  <Building2 size={14} className="text-yellow-300" />{" "}
-                  {job?.company?.company_name}
-                  <span className="text-slate-200">•</span>
-                  <MapPin size={14} /> {job.country?.name}, {job.city?.name}
-                </div>
-
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
-                  <div className="flex gap-2">
-                    <span className="px-2 py-1 bg-slate-900 text-yellow-300 rounded-md text-[10px] font-black uppercase tracking-tight">
-                     {job.job_type}
-                    </span>
-                 
-                  </div>
-                  <div className="flex items-center gap-1.5 text-slate-900 text-[11px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                    View{" "}
-                    <Send
-                      size={12}
-                      className="text-yellow-300 fill-yellow-300"
+                    <div
+                      className={`absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 rounded-r-full transition-all duration-500 ${selectedJob?.id === job.id ? "bg-yellow-300 scale-100" : "bg-transparent scale-0"}`}
                     />
+
+                    <div className="flex justify-between items-start mb-3">
+                      <h3
+                        className={`text-lg font-black transition-colors ${selectedJob?.id === job.id ? "text-slate-900" : "text-slate-600 group-hover:text-yellow-600"}`}
+                      >
+                        {job.title}
+                      </h3>
+                      <button className="text-slate-300 hover:text-yellow-300 transition-colors">
+                        <Bookmark size={18} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-slate-500 text-sm font-medium mb-4">
+                      <Building2 size={14} className="text-yellow-300" />{" "}
+                      {job?.company?.company_name}
+                      <span className="text-slate-200">•</span>
+                      <MapPin size={14} /> {job.country?.name}, {job.city?.name}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-50">
+                      <div className="flex gap-2">
+                        <span className="px-2 py-1 bg-slate-900 text-yellow-300 rounded-md text-[10px] font-black uppercase tracking-tight">
+                          {job.job_type}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-slate-900 text-[11px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                        View{" "}
+                        <Send
+                          size={12}
+                          className="text-yellow-300 fill-yellow-300"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                ))}
           </div>
 
           {/* RIGHT: JOB DETAIL */}
@@ -254,10 +285,14 @@ export default function JobsPage() {
                           {selectedJob?.company?.company_name}
                         </span>
                         <span className="flex items-center gap-1">
-                          <MapPin size={16} /> {selectedJob.country?.name}, {selectedJob.city?.name}
+                          <MapPin size={16} /> {selectedJob.country?.name},{" "}
+                          {selectedJob.city?.name}
                         </span>
                         <span className="flex items-center gap-1 text-slate-900 font-black underline decoration-yellow-300 decoration-2 underline-offset-4">
-                          <Wallet size={16} /> {selectedJob.salary_min && selectedJob.salary_max ? `${selectedJob.salary_min} - ${selectedJob.salary_max} ${selectedJob.currency}`: "Salary not disclosed"}
+                          <Wallet size={16} />{" "}
+                          {selectedJob.salary_min && selectedJob.salary_max
+                            ? `${selectedJob.salary_min} - ${selectedJob.salary_max} ${selectedJob.currency}`
+                            : "Salary not disclosed"}
                         </span>
                       </div>
                     </div>
@@ -283,7 +318,11 @@ export default function JobsPage() {
                       {
                         icon: <Calendar size={18} />,
                         label: "Posted",
-                        val: selectedJob.created_at ? new Date(selectedJob.created_at).toLocaleDateString() : "N/A",
+                        val: selectedJob.created_at
+                          ? new Date(
+                              selectedJob.created_at,
+                            ).toLocaleDateString()
+                          : "N/A",
                         color: "text-yellow-600",
                       },
                       {

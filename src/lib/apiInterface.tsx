@@ -38,6 +38,7 @@ export interface Job {
   country_id: number;   
   city_id: number;
   is_remote: boolean;
+  slug: string;
   salary_min: number;
   salary_max: number;
   currency: string;
