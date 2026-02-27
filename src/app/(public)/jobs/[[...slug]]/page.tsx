@@ -15,7 +15,7 @@ import {
   Calendar,
 } from "lucide-react";
 import FlexibleMultiSelect from "@/src/components/common/MultiSelectFilter";
-import { useRouter, useSearchParams  } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/src/lib/axios";
 import { Job } from "@/src/lib/apiInterface";
 
@@ -41,8 +41,8 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
   const [selectedSalaries, setSelectedSalaries] = useState<any[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
 
-  const [jobTitle, setJobTitle] = useState(searchParams.get("job_title")??'');
-  const [location, setLocation] = useState(searchParams.get("location")??"");
+  const [jobTitle, setJobTitle] = useState(searchParams.get("job_title") ?? "");
+  const [location, setLocation] = useState(searchParams.get("location") ?? "");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -50,7 +50,7 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
     setSelectedJobTypes([]);
     setSelectedSalaries([]);
   };
-  const slug = resolvedParams?.slug?.[0]??''; 
+  const slug = resolvedParams?.slug?.[0] ?? "";
 
   const handleSearch = () => {
     if (!jobTitle.trim() && !location.trim()) return;
@@ -63,8 +63,6 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
 
     router.push(`/jobs/${slug}?${params_url.toString()}`);
   };
-
-
 
   const handleJobClick = (job: Job) => {
     setSelectedJob(job);
@@ -101,15 +99,50 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
 
   useEffect(() => {
     if (slug && jobs.length > 0) {
-      const jobFromSlug = jobs.find(j => j.slug === slug);
+      const jobFromSlug = jobs.find((j) => j.slug === slug);
       console.log(jobFromSlug);
       if (jobFromSlug) {
         setSelectedJob(jobFromSlug);
       }
     } else if (!slug) {
-      setSelectedJob(jobs[0]); 
+      setSelectedJob(jobs[0]);
     }
   }, [slug, jobs]);
+
+  const JobDetailSkeleton = () => (
+    <div className="animate-pulse">
+      {/* Header Skeleton */}
+      <div className="p-8 border-b-4 border-slate-100 sticky top-0 bg-white z-10">
+        <div className="flex justify-between items-start gap-6">
+          <div className="flex-1">
+            <div className="h-10 w-3/4 bg-slate-200 rounded-lg mb-4" />
+            <div className="flex gap-4">
+              <div className="h-4 w-24 bg-slate-100 rounded" />
+              <div className="h-4 w-24 bg-slate-100 rounded" />
+            </div>
+          </div>
+          <div className="w-32 h-12 bg-slate-200 rounded-2xl" />
+        </div>
+      </div>
+
+      {/* Content Skeleton */}
+      <div className="p-10 space-y-12">
+        <div className="grid grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="p-5 bg-slate-50 rounded-2xl h-24" />
+          ))}
+        </div>
+        <div className="space-y-4">
+          <div className="h-6 w-48 bg-slate-200 rounded" />
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-slate-100 rounded" />
+            <div className="h-4 w-full bg-slate-100 rounded" />
+            <div className="h-4 w-2/3 bg-slate-100 rounded" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 
   const JobCardSkeleton = () => (
     <div className="p-6 rounded-[24px] border-2 border-slate-100 bg-white animate-pulse">
@@ -269,116 +302,122 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
 
           {/* RIGHT: JOB DETAIL */}
           <div className="hidden md:block flex-1 overflow-y-auto border border-slate-200 rounded-[32px] bg-white shadow-2xl relative custom-scrollbar">
-            {selectedJob && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="p-8 border-b-4 border-yellow-300 sticky top-0 bg-white/95 backdrop-blur-md z-10">
-                  <div className="flex justify-between items-start gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                          {selectedJob.title}
-                        </h1>
+            {loading ? (
+              <JobDetailSkeleton />
+            ) : (
+              selectedJob && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="p-8 border-b-4 border-yellow-300 sticky top-0 bg-white/95 backdrop-blur-md z-10">
+                    <div className="flex justify-between items-start gap-6">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                            {selectedJob.title}
+                          </h1>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-5 text-slate-500 font-bold text-sm">
+                          <span className="flex items-center gap-1 hover:text-yellow-600 transition-colors cursor-pointer">
+                            <Building2 size={16} className="text-yellow-300" />{" "}
+                            {selectedJob?.company?.company_name}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <MapPin size={16} /> {selectedJob.country?.name},{" "}
+                            {selectedJob.city?.name}
+                          </span>
+                          <span className="flex items-center gap-1 text-slate-900 font-black underline decoration-yellow-300 decoration-2 underline-offset-4">
+                            <Wallet size={16} />{" "}
+                            {selectedJob.salary_min && selectedJob.salary_max
+                              ? `${selectedJob.salary_min} - ${selectedJob.salary_max} ${selectedJob.currency}`
+                              : "Salary not disclosed"}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-5 text-slate-500 font-bold text-sm">
-                        <span className="flex items-center gap-1 hover:text-yellow-600 transition-colors cursor-pointer">
-                          <Building2 size={16} className="text-yellow-300" />{" "}
-                          {selectedJob?.company?.company_name}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <MapPin size={16} /> {selectedJob.country?.name},{" "}
-                          {selectedJob.city?.name}
-                        </span>
-                        <span className="flex items-center gap-1 text-slate-900 font-black underline decoration-yellow-300 decoration-2 underline-offset-4">
-                          <Wallet size={16} />{" "}
-                          {selectedJob.salary_min && selectedJob.salary_max
-                            ? `${selectedJob.salary_min} - ${selectedJob.salary_max} ${selectedJob.currency}`
-                            : "Salary not disclosed"}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-3">
-                      <button className="bg-slate-900 hover:bg-yellow-300 hover:text-slate-900 text-yellow-300 px-10 py-4 rounded-2xl font-black text-sm transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-100 hover:shadow-yellow-50">
-                        APPLY NOW
-                      </button>
-                      <div className="flex gap-2">
-                        <button className="p-3 border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 rounded-xl text-slate-600 transition-all">
-                          <Bookmark size={20} />
+                      <div className="flex flex-col items-end gap-3">
+                        <button className="bg-slate-900 hover:bg-yellow-300 hover:text-slate-900 text-yellow-300 px-10 py-4 rounded-2xl font-black text-sm transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-100 hover:shadow-yellow-50">
+                          APPLY NOW
                         </button>
-                        <button className="p-3 border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 rounded-xl text-slate-600 transition-all">
-                          <Share2 size={20} />
-                        </button>
+                        <div className="flex gap-2">
+                          <button className="p-3 border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 rounded-xl text-slate-600 transition-all">
+                            <Bookmark size={20} />
+                          </button>
+                          <button className="p-3 border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 rounded-xl text-slate-600 transition-all">
+                            <Share2 size={20} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="p-10 space-y-12">
-                  <div className="grid grid-cols-3 gap-6">
-                    {[
-                      {
-                        icon: <Calendar size={18} />,
-                        label: "Posted",
-                        val: selectedJob.created_at
-                          ? new Date(
-                              selectedJob.created_at,
-                            ).toLocaleDateString()
-                          : "N/A",
-                        color: "text-yellow-600",
-                      },
-                      {
-                        icon: <Briefcase size={18} />,
-                        label: "Job Type",
-                        val: selectedJob.job_type,
-                        color: "text-slate-800",
-                      },
-                      {
-                        icon: <Building2 size={18} />,
-                        label: "Category",
-                        val: selectedJob?.category?.name || "N/A",
-                        color: "text-yellow-600",
-                      },
-                    ].map((item, i) => (
-                      <div
-                        key={i}
-                        className="p-5 bg-slate-50 rounded-2xl border-b-2 border-slate-200 hover:border-yellow-300 transition-colors"
-                      >
-                        <div className={`${item.color} mb-2`}>{item.icon}</div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          {item.label}
-                        </p>
-                        <p className="text-slate-900 font-bold">{item.val}</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <section>
-                    <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                      <div className="w-1.5 h-6 bg-yellow-300 rounded-full" />{" "}
-                      Job Description
-                    </h2>
-                    <p className="text-slate-600 leading-[1.8] text-lg font-medium">
-                      {selectedJob.description}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                      <div className="w-1.5 h-6 bg-yellow-300 rounded-full" />{" "}
-                      Skills Required
-                    </h2>
-                    <div className="flex flex-wrap gap-3">
-                      {selectedJob?.skills.map((skill) => (
-                        <span
-                          key={skill.id}
-                          className="px-5 py-2.5 bg-slate-900 text-yellow-300 rounded-xl text-xs font-black hover:bg-yellow-300 hover:text-slate-900 transition-all cursor-default"
+                  <div className="p-10 space-y-12">
+                    <div className="grid grid-cols-3 gap-6">
+                      {[
+                        {
+                          icon: <Calendar size={18} />,
+                          label: "Posted",
+                          val: selectedJob.created_at
+                            ? new Date(
+                                selectedJob.created_at,
+                              ).toLocaleDateString()
+                            : "N/A",
+                          color: "text-yellow-600",
+                        },
+                        {
+                          icon: <Briefcase size={18} />,
+                          label: "Job Type",
+                          val: selectedJob.job_type,
+                          color: "text-slate-800",
+                        },
+                        {
+                          icon: <Building2 size={18} />,
+                          label: "Category",
+                          val: selectedJob?.category?.name || "N/A",
+                          color: "text-yellow-600",
+                        },
+                      ].map((item, i) => (
+                        <div
+                          key={i}
+                          className="p-5 bg-slate-50 rounded-2xl border-b-2 border-slate-200 hover:border-yellow-300 transition-colors"
                         >
-                          {skill.name}
-                        </span>
+                          <div className={`${item.color} mb-2`}>
+                            {item.icon}
+                          </div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            {item.label}
+                          </p>
+                          <p className="text-slate-900 font-bold">{item.val}</p>
+                        </div>
                       ))}
                     </div>
-                  </section>
+
+                    <section>
+                      <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                        <div className="w-1.5 h-6 bg-yellow-300 rounded-full" />{" "}
+                        Job Description
+                      </h2>
+                      <p className="text-slate-600 leading-[1.8] text-lg font-medium">
+                        {selectedJob.description}
+                      </p>
+                    </section>
+
+                    <section>
+                      <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                        <div className="w-1.5 h-6 bg-yellow-300 rounded-full" />{" "}
+                        Skills Required
+                      </h2>
+                      <div className="flex flex-wrap gap-3">
+                        {selectedJob?.skills.map((skill) => (
+                          <span
+                            key={skill.id}
+                            className="px-5 py-2.5 bg-slate-900 text-yellow-300 rounded-xl text-xs font-black hover:bg-yellow-300 hover:text-slate-900 transition-all cursor-default"
+                          >
+                            {skill.name}
+                          </span>
+                        ))}
+                      </div>
+                    </section>
+                  </div>
                 </div>
-              </div>
+              )
             )}
           </div>
         </div>
