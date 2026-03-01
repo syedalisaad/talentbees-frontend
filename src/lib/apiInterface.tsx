@@ -5,7 +5,11 @@ export interface LocationItem {
   name: string;
 }
 
-export type EmploymentType = "Full-Time" | "Contract" | "Part-Time" | "Freelance";
+export type EmploymentType =
+  | "Full-Time"
+  | "Contract"
+  | "Part-Time"
+  | "Freelance";
 
 export interface JobFormData {
   id?: number; // Optional, only present when editing
@@ -32,10 +36,10 @@ export interface ApiResponse<T> {
 
 export interface Job {
   id: number;
-  title: string;  
+  title: string;
   category_name: string;
   employment_type: EmploymentType;
-  country_id: number;   
+  country_id: number;
   city_id: number;
   is_remote: boolean;
   slug: string;
@@ -52,10 +56,11 @@ export interface Job {
   company?: Company;
   created_at?: string;
   updated_at?: string;
+  is_applied?: boolean;
 }
 export interface ScreeningQuestion {
   question: string;
-  field_type: string; 
+  field_type: string;
 }
 export interface skill {
   id: number;
@@ -115,14 +120,14 @@ export interface category {
   slug: string;
   created_at: string;
   updated_at: string;
-} 
+}
 
 export interface role {
   id: number;
-  name: string; 
+  name: string;
   created_at: string;
   updated_at: string;
-} 
+}
 export interface user {
   id: number;
   name: string;
@@ -130,4 +135,4 @@ export interface user {
   roles: role[];
   created_at: string;
   updated_at: string;
-  }
+}

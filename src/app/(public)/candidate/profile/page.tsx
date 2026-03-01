@@ -16,11 +16,15 @@ import {
 } from "lucide-react";
 import api from "@/src/lib/axios";
 import { useRouter } from "next/navigation";
-import { LocationItem } from "@/src/lib/apiInterface";
+import { Job, LocationItem } from "@/src/lib/apiInterface";
 import DatePicker from "react-datepicker";
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
-export default function CandidateProfileForm() {
+export default function CandidateProfileForm({
+  jobSlug,
+}: {
+  jobSlug?: string;
+}) {
   const router = useRouter();
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -49,12 +53,32 @@ export default function CandidateProfileForm() {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [resumePreview, setResumePreview] = useState<string | null>(null);
+  const [job, setJob] = useState<Job | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(
     null,
   );
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
+  const fetchJob = async (jobSlug: String) => {
+    try {
+      setLoading(true);
+
+      const response = await api.get(`/job-by-slug/${jobSlug}`);
+      console.log(response);
+
+      setJob(response.data.data);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJob(jobSlug);
+  }, [jobSlug]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -71,7 +95,6 @@ export default function CandidateProfileForm() {
         const CandidateProfileRes = await api.get("/candidate-profile-me");
         if (CandidateProfileRes.data.data) {
           const CandidateProfile = CandidateProfileRes.data.data;
-          console.log("Fetched Candidate Profile:", CandidateProfile);
           setProfilePhotoPreview(CandidateProfile.profile_photo_url || null);
           setResumePreview(CandidateProfile.active_resume.resume_url || null);
           setFormData({
@@ -231,16 +254,21 @@ export default function CandidateProfileForm() {
     newProj[index][field] = value;
     setFormData({ ...formData, projects: newProj });
   };
- const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0] || null;
-  if (!file) return;
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (!file) return;
 
-  setPhotoFile(file);
+    setPhotoFile(file);
 
-  const reader = new FileReader();
-  reader.onloadend = () => setProfilePhotoPreview(reader.result as string);
-  reader.readAsDataURL(file);
-};
+    const reader = new FileReader();
+    reader.onloadend = () => setProfilePhotoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleQuestion = () =>{
+    router.push(`questions`)
+
+  }
   const inputStyle =
     "w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 outline-none focus:border-yellow-400 focus:bg-white transition-all font-bold text-slate-700 text-[12px] disabled:opacity-50";
   const labelStyle =
@@ -259,14 +287,25 @@ export default function CandidateProfileForm() {
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-20">
       <div className="max-w-5xl mx-auto px-4 pt-6">
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight">
-              Candidate <span className="text-yellow-500">Profile</span>
-            </h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Biological Data Sync
-            </p>
-          </div>
+          {jobSlug ? (job?.is_applied &&  job?.is_applied == true ?  <button className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70" disabled>
+              All ready Applied
+            </button> : job?.screening_questions.length>0 ?(
+            <button className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70" onClick={handleQuestion}>
+              Next Step
+            </button>
+          ): <button className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70">
+              Applied job
+            </button>) : (
+            <div>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight">
+                Candidate <span className="text-yellow-500">Profile</span>
+              </h1>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Biological Data Sync
+              </p>
+            </div>
+          )}
+
           <button
             onClick={handleSave}
             disabled={isSubmitting}
@@ -478,22 +517,20 @@ export default function CandidateProfileForm() {
                           ? "Resume uploaded"
                           : "Drop PDF here or click to upload"}
                     </p>
-                    
                   </div>
-             
                 </div>
-                     {resumePreview && (
-                    <div className="mt-3 text-center">
-                      <a
-                        href={resumePreview}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[10px] font-black text-yellow-500 underline uppercase"
-                      >
-                        View Resume
-                      </a>
-                    </div>
-                  )}
+                {resumePreview && (
+                  <div className="mt-3 text-center">
+                    <a
+                      href={resumePreview}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-black text-yellow-500 underline uppercase"
+                    >
+                      View Resume
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </section>

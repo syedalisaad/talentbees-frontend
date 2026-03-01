@@ -19,7 +19,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
 
   const handleSearch = () => {
-    if (!jobTitle.trim() && !location.trim()) return;
 
     setLoading(true);
 

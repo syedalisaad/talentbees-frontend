@@ -32,10 +32,11 @@ const SALARY_OPTIONS = [
   { id: "s4", name: "$10k+" },
 ];
 
-export default function JobsPage({ params }: { params: { slug: string } }) {
+export default function JobsPage({ params }: { params: Promise<{ slug: string }> }) {
   const router = useRouter();
   const resolvedParams = React.use(params);
   const searchParams = useSearchParams();
+
 
   const [selectedJobTypes, setSelectedJobTypes] = useState<any[]>([]);
   const [selectedSalaries, setSelectedSalaries] = useState<any[]>([]);
@@ -50,11 +51,9 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
     setSelectedJobTypes([]);
     setSelectedSalaries([]);
   };
-  const slug = resolvedParams?.slug?.[0] ?? "";
+ const slug = resolvedParams.slug || "";
 
   const handleSearch = () => {
-    if (!jobTitle.trim() && !location.trim()) return;
-
     setLoading(true);
 
     const params_url = new URLSearchParams();
@@ -99,7 +98,7 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
 
   useEffect(() => {
     if (slug && jobs.length > 0) {
-      const jobFromSlug = jobs.find((j) => j.slug === slug);
+      const jobFromSlug = jobs.find((job) => job.slug === slug);
       console.log(jobFromSlug);
       if (jobFromSlug) {
         setSelectedJob(jobFromSlug);
@@ -111,7 +110,6 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
 
   const JobDetailSkeleton = () => (
     <div className="animate-pulse">
-      {/* Header Skeleton */}
       <div className="p-8 border-b-4 border-slate-100 sticky top-0 bg-white z-10">
         <div className="flex justify-between items-start gap-6">
           <div className="flex-1">
@@ -125,7 +123,6 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
         </div>
       </div>
 
-      {/* Content Skeleton */}
       <div className="p-10 space-y-12">
         <div className="grid grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
@@ -157,6 +154,10 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
       </div>
     </div>
   );
+
+  const handleJobApplied =(job: Job) =>{
+    router.push(`${job.slug}/apply`)
+  }
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen flex flex-col font-sans antialiased text-slate-600">
@@ -333,7 +334,9 @@ export default function JobsPage({ params }: { params: { slug: string } }) {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-3">
-                        <button className="bg-slate-900 hover:bg-yellow-300 hover:text-slate-900 text-yellow-300 px-10 py-4 rounded-2xl font-black text-sm transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-100 hover:shadow-yellow-50">
+                        <button className="bg-slate-900 hover:bg-yellow-300 hover:text-slate-900 text-yellow-300 px-10 py-4 rounded-2xl font-black text-sm transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-100 hover:shadow-yellow-50"
+                        onClick={()=>{handleJobApplied(selectedJob)}}
+                        >
                           APPLY NOW
                         </button>
                         <div className="flex gap-2">
