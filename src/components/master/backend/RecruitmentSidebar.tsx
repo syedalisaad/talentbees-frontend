@@ -23,6 +23,8 @@ export default function RecruitmentSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+
+
   useEffect(() => {
     setMounted(true);
     const token = localStorage.getItem("token");
@@ -89,7 +91,6 @@ export default function RecruitmentSidebar() {
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-4 mt-4 space-y-1.5 overflow-y-auto no-scrollbar">
         <p className={`text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 px-2 ${isCollapsed ? "text-center" : ""}`}>
           {isCollapsed ? "•••" : "Management"}
@@ -117,7 +118,6 @@ export default function RecruitmentSidebar() {
                   </span>
                 )}
 
-                {/* Tooltip for Collapsed State */}
                 {isCollapsed && (
                   <div className="absolute left-16 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 font-black uppercase tracking-widest shadow-xl">
                     {item.label}

@@ -33,7 +33,7 @@ export default function LoginPage() {
       const data = response.data.data || response.data;
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-
+      window.dispatchEvent(new Event("local-auth-change"));
       router.push("/");
     } catch (err: any) {
       if (err.response?.status === 422) {
