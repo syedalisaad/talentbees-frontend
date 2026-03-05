@@ -36,8 +36,8 @@ export default function JobList() {
       });
       
       setJobs(res.data.data || []);
-      setTotalPages(res.data.last_page || 1);
-      setTotalItems(res.data.total || 0);
+      setTotalPages(res.data.meta.last_page || 1);
+      setTotalItems(res.data.meta.total || 0);
     } catch (err) {
       console.error("API Error:", err);
     } finally {

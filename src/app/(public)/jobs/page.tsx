@@ -93,7 +93,6 @@ export default function JobsPage() {
     searchParams.get("page"),
   ]);
 
-
   const JobDetailSkeleton = () => (
     <div className="animate-pulse">
       <div className="p-8 border-b-4 border-slate-100 sticky top-0 bg-white z-10">
@@ -141,9 +140,9 @@ export default function JobsPage() {
     </div>
   );
 
-  const handleJobApplied =(job: Job) =>{
-    router.push(`${job.slug}/apply`)
-  }
+  const handleJobApplied = (job: Job) => {
+    router.push(`${job.slug}/apply`);
+  };
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen flex flex-col font-sans antialiased text-slate-600">
@@ -320,11 +319,25 @@ export default function JobsPage() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-3">
-                        <button className="bg-slate-900 hover:bg-yellow-300 hover:text-slate-900 text-yellow-300 px-10 py-4 rounded-2xl font-black text-sm transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-100 hover:shadow-yellow-50"
-                        onClick={()=>{handleJobApplied(selectedJob)}}
-                        >
-                          APPLY NOW
-                        </button>
+                        {selectedJob?.is_applied &&
+                        selectedJob?.is_applied == true ? (
+                          <button
+                            className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70"
+                            disabled
+                          >
+                            All ready Applied
+                          </button>
+                        ) : (
+                          <button
+                            className="bg-slate-900 hover:bg-yellow-300 hover:text-slate-900 text-yellow-300 px-10 py-4 rounded-2xl font-black text-sm transition-all transform hover:-translate-y-1 shadow-xl shadow-slate-100 hover:shadow-yellow-50"
+                            onClick={() => {
+                              handleJobApplied(selectedJob);
+                            }}
+                          >
+                            APPLY NOW
+                          </button>
+                        )}
+
                         <div className="flex gap-2">
                           <button className="p-3 border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 rounded-xl text-slate-600 transition-all">
                             <Bookmark size={20} />

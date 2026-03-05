@@ -71,12 +71,12 @@ export default function Navbar() {
                 >
                   My Profile
                 </Link>
-                <Link
+                {/* <Link
                   href="/candidate/resume"
                   className="hidden md:block text-sm font-medium text-slate-900 hover:text-yellow-500 transition-colors"
                 >
                   My Resume
-                </Link>
+                </Link> */}
                 <Link
                   href="/candidate/applications"
                   className="hidden md:block text-sm font-medium text-slate-900 hover:text-yellow-500 transition-colors"

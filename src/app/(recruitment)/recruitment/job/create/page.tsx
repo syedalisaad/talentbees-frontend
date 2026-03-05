@@ -39,6 +39,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     is_remote: false,
     salary_max: 0,
     salary_min: 0,
+    currency:'USD',
     description: "",
     skills: [],
     languages: [],
@@ -87,7 +88,6 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
       const fetchJobData = async () => {
         try {
           const res = await api.get(`/company-job-postings/${jobId}`);
-          console.log("Fetched job data for editing:", res.data.data);
           let data = res.data.data;
           data["category_name"] = data.category?.name || "";
           setFormData(res.data.data);
@@ -104,7 +104,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
       ...formData,
       screening_questions: [
         ...formData.screening_questions,
-        { question: "", field_type: "text" },
+        {  question: "", field_type: "text", is_required: false, order: 1 },
       ],
     });
   };
@@ -368,47 +368,45 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
             </div>
 
             <div className="grid grid-cols-12 gap-3">
-                {/* Min Salary */}
-                <div className="col-span-4">
-                  <label className={labelStyle}>Min Salary</label>
-                  <div className="relative">
-                    <input
-                      name="salary_min"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="0"
-                      // Show commas in the UI, but keep raw number in state
-                      value={
-                        formData.salary_min === 0
-                          ? ""
-                          : formData.salary_min.toLocaleString()
-                      }
-                      onChange={handleChange}
-                      className={inputStyle}
-                    />
-                  </div>
+              {/* Min Salary */}
+              <div className="col-span-4">
+                <label className={labelStyle}>Min Salary</label>
+                <div className="relative">
+                  <input
+                    name="salary_min"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    // Show commas in the UI, but keep raw number in state
+                    value={
+                      formData.salary_min === 0
+                        ? ""
+                        : formData.salary_min.toLocaleString()
+                    }
+                    onChange={handleChange}
+                    className={inputStyle}
+                  />
                 </div>
+              </div>
 
-                {/* Max Salary */}
-                <div className="col-span-4">
-                  <label className={labelStyle}>Max Salary</label>
-                  <div className="relative">
-                    <input
-                      name="salary_max"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="0"
-                      value={
-                        formData.salary_max === 0
-                          ? ""
-                          : formData.salary_max.toLocaleString()
-                      }
-                      onChange={handleChange}
-                      className={inputStyle}
-                    />
-                  </div>
-
-                {/* Currency (keeping your existing col-span-4 for the select) */}
+              {/* Max Salary */}
+              <div className="col-span-4">
+                <label className={labelStyle}>Max Salary</label>
+                <div className="relative">
+                  <input
+                    name="salary_max"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={
+                      formData.salary_max === 0
+                        ? ""
+                        : formData.salary_max.toLocaleString()
+                    }
+                    onChange={handleChange}
+                    className={inputStyle}
+                  />
+                </div>
               </div>
               <div className="col-span-4">
                 <label className={labelStyle}>Currency</label>
@@ -539,7 +537,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
               </button>
             </div>
             <div className="space-y-2">
-              {formData.screening_questions.map((q, index) => (
+              {formData.screening_questions.map((question, index) => (
                 <div
                   key={index}
                   className="flex gap-2 items-end bg-slate-50 p-2 rounded-xl border border-slate-100"
@@ -550,7 +548,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
                     </label>
                     <input
                       type="text"
-                      value={q.question}
+                      value={question.question}
                       onChange={(e) =>
                         updateQuestion(index, "question", e.target.value)
                       }
@@ -564,7 +562,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
                       Response Type
                     </label>
                     <select
-                      value={q.field_type}
+                      value={question.field_type}
                       onChange={(e) =>
                         updateQuestion(index, "field_type", e.target.value)
                       }
@@ -574,6 +572,19 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
                       <option value="number">Number</option>
                       <option value="boolean">Yes/No (Radio)</option>
                     </select>
+                  </div>
+                  <div className="flex-[1]">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={question.is_required}
+                        onChange={(e) =>
+                          updateQuestion(index, "is_required", e.target.checked)
+                        }
+                        className="w-4 h-4 accent-yellow-500"
+                      />
+                      <span className="text-[10px]">Is Required</span>
+                    </label>
                   </div>
 
                   <button

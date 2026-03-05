@@ -13,10 +13,11 @@ import {
   Link as LinkIcon,
   Phone,
   Camera,
+  Languages,
 } from "lucide-react";
 import api from "@/src/lib/axios";
 import { useRouter } from "next/navigation";
-import { Job, LocationItem } from "@/src/lib/apiInterface";
+import { Job, LocationItem, Language, Skill } from "@/src/lib/apiInterface";
 import DatePicker from "react-datepicker";
 import toast from "react-hot-toast";
 
@@ -37,14 +38,14 @@ export default function CandidateProfileForm({
     open_to_work: true,
     expected_salary: "",
     current_salary: "",
-    skills: [] as number[],
+    skills: [] as Skill[],
+    languages: [] as Language[],
     experiences: [] as any[],
     educations: [] as any[],
     projects: [] as any[],
     certifications: [] as any[],
   });
 
-  // --- UI State ---
   const [countries, setCountries] = useState<LocationItem[]>([]);
   const [cities, setCities] = useState<LocationItem[]>([]);
   const [loadingInitial, setLoadingInitial] = useState(true);
@@ -55,6 +56,8 @@ export default function CandidateProfileForm({
   const [resumePreview, setResumePreview] = useState<string | null>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [skillInput, setSkillInput] = useState("");
+  const [langInput, setLangInput] = useState("");
 
   const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(
     null,
@@ -64,10 +67,7 @@ export default function CandidateProfileForm({
   const fetchJob = async (jobSlug: String) => {
     try {
       setLoading(true);
-
       const response = await api.get(`/job-by-slug/${jobSlug}`);
-      console.log(response);
-
       setJob(response.data.data);
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -77,6 +77,7 @@ export default function CandidateProfileForm({
   };
 
   useEffect(() => {
+    if (!jobSlug) return;
     fetchJob(jobSlug);
   }, [jobSlug]);
 
@@ -104,7 +105,10 @@ export default function CandidateProfileForm({
           });
         }
       } catch (err) {
-        console.error("Init error", err);
+        if (err.response.status == 403) {
+          toast.error(err.response.data.message);
+          router.push("/login/");
+        }
       } finally {
         setLoadingInitial(false);
       }
@@ -165,6 +169,8 @@ export default function CandidateProfileForm({
     payload.append("educations", JSON.stringify(formData.educations));
     payload.append("projects", JSON.stringify(formData.projects));
     payload.append("certifications", JSON.stringify(formData.certifications));
+    payload.append("skills", JSON.stringify(formData.skills));
+    payload.append("languages", JSON.stringify(formData.languages));
 
     try {
       payload.append("_method", "POST");
@@ -265,10 +271,81 @@ export default function CandidateProfileForm({
     reader.readAsDataURL(file);
   };
 
-  const handleQuestion = () =>{
-    router.push(`questions`)
+  const handleQuestion = () => {
+    router.push(`questions`);
+  };
 
-  }
+  const handleAppliedJob = async () => {
+    setErrors({});
+
+    const newErrors: Record<string, string> = {};
+
+    job?.screening_questions?.forEach((question, index) => {
+      const answer = formData.screening_answers[index]?.value;
+
+      if (question.is_required && (!answer || answer === "")) {
+        newErrors[`question_${question.id}`] = "This question is required";
+      }
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please answer all required questions");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await api.post("/apply-job", {
+        company_job_posting_id: job?.id,
+      });
+      router.push("/jobs/");
+      toast.success("Job applied successfully!");
+    } catch (err: any) {
+      if (err.response?.data?.errors) {
+        setErrors(err.response.data.errors);
+      }
+      if (err.response.status == 403) {
+        toast.error(err.response.data.message);
+        router.push("/login/");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const addSkill = () => {
+    const trimmed = skillInput.trim();
+    if (
+      trimmed &&
+      !formData.skills.some(
+        (s) => s.name.toLowerCase() === trimmed.toLowerCase(),
+      )
+    ) {
+      setFormData({
+        ...formData,
+        skills: [...formData.skills, { id: Date.now(), name: trimmed }],
+      });
+      setSkillInput("");
+    }
+  };
+
+  const addLanguage = () => {
+    const trimmed = langInput.trim();
+    if (
+      trimmed &&
+      !formData.languages.some(
+        (l) => l.name.toLowerCase() === trimmed.toLowerCase(),
+      )
+    ) {
+      setFormData({
+        ...formData,
+        languages: [...formData.languages, { id: Date.now(), name: trimmed }],
+      });
+      setLangInput("");
+    }
+  };
   const inputStyle =
     "w-full bg-slate-50 border border-slate-200 rounded-lg py-1.5 px-3 outline-none focus:border-yellow-400 focus:bg-white transition-all font-bold text-slate-700 text-[12px] disabled:opacity-50";
   const labelStyle =
@@ -287,15 +364,30 @@ export default function CandidateProfileForm({
     <div className="min-h-screen bg-[#F8FAFC] font-sans pb-20">
       <div className="max-w-5xl mx-auto px-4 pt-6">
         <div className="flex items-center justify-between mb-8">
-          {jobSlug ? (job?.is_applied &&  job?.is_applied == true ?  <button className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70" disabled>
-              All ready Applied
-            </button> : job?.screening_questions.length>0 ?(
-            <button className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70" onClick={handleQuestion}>
-              Next Step
-            </button>
-          ): <button className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70">
-              Applied job
-            </button>) : (
+          {jobSlug ? (
+            job?.is_applied && job?.is_applied == true ? (
+              <button
+                className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70"
+                disabled
+              >
+                All ready Applied
+              </button>
+            ) : job?.screening_questions.length > 0 ? (
+              <button
+                className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70"
+                onClick={handleQuestion}
+              >
+                Next Step
+              </button>
+            ) : (
+              <button
+                className="bg-yellow-300 hover:bg-slate-900 hover:text-white text-slate-900 px-6 py-2.5 rounded-xl font-black text-[10px] tracking-widest uppercase transition-all flex items-center gap-2 shadow-lg disabled:opacity-70"
+                onClick={handleAppliedJob}
+              >
+                Applied job
+              </button>
+            )
+          ) : (
             <div>
               <h1 className="text-xl font-black text-slate-900 tracking-tight">
                 Candidate <span className="text-yellow-500">Profile</span>
@@ -368,10 +460,17 @@ export default function CandidateProfileForm({
                   Upload a professional headshot. JPEG or PNG. Max 2MB. Your
                   photo helps build trust with potential employers.
                 </p>
+                  {errors.profile_photo_path && (
+                <p className="text-[9px] text-red-500 font-bold mt-1">
+                  {errors.profile_photo_path}
+                </p>
+              )}
               </div>
+             
             </div>
 
             <div className="grid grid-cols-12 gap-4">
+             
               <div className="col-span-4">
                 <label className={labelStyle}>Phone Number</label>
                 <input
@@ -534,6 +633,98 @@ export default function CandidateProfileForm({
               </div>
             </div>
           </section>
+          <div className="flex gap-2">
+            <section className="flex-1 min-w-[400px] bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              {" "}
+              <label className={labelStyle}>Skills</label>
+              <div className="relative mb-2">
+                <input
+                  type="text"
+                  value={skillInput}
+                  onChange={(e) => setSkillInput(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && addSkill()}
+                  placeholder="Please add skills and press enter..."
+                  className={inputStyle}
+                />
+                <Plus
+                  size={14}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"
+                />
+                {errors.skills && (
+                  <p className="text-[9px] text-red-500 font-bold mt-1">
+                    {errors.skills}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {formData.skills?.map((skill) => (
+                  <span
+                    key={skill.id}
+                    className="bg-yellow-200 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1"
+                  >
+                    {skill.name}
+                    <X
+                      size={8}
+                      className="cursor-pointer text-slate-900"
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          skills: formData.skills.filter(
+                            (s) => s.id !== skill.id,
+                          ),
+                        })
+                      }
+                    />
+                  </span>
+                ))}
+              </div>
+            </section>
+            <section className="flex-1 min-w-[400px] bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              {" "}
+              <label className={labelStyle}>Languages</label>
+              <div className="relative mb-2">
+                <input
+                  type="text"
+                  value={langInput}
+                  onChange={(e) => setLangInput(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && addLanguage()}
+                  placeholder="Enter language (English, French, Spanish) and press enter..."
+                  className={inputStyle}
+                />
+                <Plus
+                  size={14}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300"
+                />
+                {errors.languages && (
+                  <p className="text-[9px] text-red-500 font-bold mt-1">
+                    {errors.languages}
+                  </p>
+                )}{" "}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {formData.languages?.map((lang) => (
+                  <span
+                    key={lang.id}
+                    className="bg-yellow-200 text-slate-900 text-[9px] font-black px-1.5 py-0.5 rounded flex items-center gap-1"
+                  >
+                    {lang.name}
+                    <X
+                      size={8}
+                      className="cursor-pointer text-slate-900"
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          languages: formData.languages.filter(
+                            (l) => l.id !== lang.id,
+                          ),
+                        })
+                      }
+                    />
+                  </span>
+                ))}
+              </div>
+            </section>
+          </div>
           {/* Dynamic Experience Section */}
           <section className={cardStyle}>
             <div className="flex items-center justify-between mb-4">
