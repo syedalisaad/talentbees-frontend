@@ -21,7 +21,7 @@ export type CandidateStatus =  'applied'|
 export interface JobFormData {
   id?: number; // Optional, only present when editing
   title: string;
-  category: category;
+  category: Category;
   type: EmploymentType;
   country_id: string | number;
   city_id: string | number;
@@ -55,7 +55,7 @@ export interface Job {
   currency: string;
   job_type: string;
   description: string;
-  skills?: Skill[];
+  skills: Skill[] | [];
   languages?: Language[];
   country?: Country;
   city?: City;
@@ -64,6 +64,7 @@ export interface Job {
   created_at?: string;
   updated_at?: string;
   is_applied?: boolean;
+  category:Category
 }
 export interface ScreeningQuestion {
   id: number | null;
@@ -164,7 +165,7 @@ export interface Company {
   candidate_profile?: CandidateProfile
 }
 
-export interface category {
+export interface Category {
   id: number;
   name: string;
   slug: string;
