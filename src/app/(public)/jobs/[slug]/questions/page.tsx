@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import api from "@/src/lib/axios";
 import { useRouter } from "next/navigation";
-import { Job, LocationItem } from "@/src/lib/apiInterface";
+import { Job, LocationItem, ScreeningQuestion } from "@/src/lib/apiInterface";
 import toast from "react-hot-toast";
 
 export default function jobQuestions({
@@ -61,7 +61,7 @@ export default function jobQuestions({
 
     const newErrors: Record<string, string> = {};
 
-    job?.screening_questions?.forEach((question, index) => {
+    job?.screening_questions?.forEach((question: ScreeningQuestion, index:any) => {
       const answer = formData.screening_answers[index]?.value;
 
       if (question.is_required && (!answer || answer === "")) {
