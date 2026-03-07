@@ -67,7 +67,7 @@ export interface Job {
   category:Category
 }
 export interface ScreeningQuestion {
-  id: number | null;
+  id: number;
   question: string;
   field_type: string;
   is_required: boolean;
@@ -186,6 +186,8 @@ export interface User {
   roles: role[];
   created_at: string;
   updated_at: string;
+  company?: Company;
+  candidate_profile?: CandidateProfile;
 }
 
 export interface Candidate {

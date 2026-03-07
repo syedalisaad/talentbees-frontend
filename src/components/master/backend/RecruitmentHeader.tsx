@@ -7,16 +7,17 @@ import {
   ExternalLink,
   ChevronDown,
   LogOut,
-  User,
+  User as UserIcon,
   Settings,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { User } from "@/src/lib/apiInterface";
 
 export default function RecruitmentHeader() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState({ name: "Admin User", initials: "AU", user: null });
+  const [user, setUser] = useState({ name: "Admin User", initials: "AU", user: null,company:{company_name:''} });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function RecruitmentHeader() {
           name: fullName,
           initials: initials || "AA",
           user: parsed,
+          company:{company_name:'null'},
         });
       } catch (e) {
         console.error("Failed to parse user from localStorage", e);
@@ -128,7 +130,7 @@ export default function RecruitmentHeader() {
 
               <Link href="/recruitment/profile" onClick={() => setIsOpen(false)}>
                 <div className="flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer">
-                  <User size={18} className="text-slate-400" />
+                  <UserIcon size={18} className="text-slate-400" />
                   <span className="text-xs font-black uppercase tracking-wider">Edit Profile</span>
                 </div>
               </Link>

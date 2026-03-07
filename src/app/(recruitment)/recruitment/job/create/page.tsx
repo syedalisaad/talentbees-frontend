@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Plus, X, Save, Currency } from "lucide-react";
-import { Job, LocationItem } from "@/src/lib/apiInterface";
+import { Job, LocationItem, ScreeningQuestion } from "@/src/lib/apiInterface";
 import api from "@/src/lib/axios";
 import { useRouter } from "next/navigation";
 
@@ -30,7 +30,7 @@ const CURRENCIES = [
 ];
 export default function PostJobForm({ jobId }: { jobId?: string }) {
   const router = useRouter();
-  const [formData, setFormData] = useState<Job>({
+  const [formData, setFormData] = useState<Partial<Job>>({
     title: "",
     category_name: "",
     job_type: "",
@@ -113,7 +113,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     setFormData({
       ...formData,
       screening_questions: formData.screening_questions.filter(
-        (_, i) => i !== index,
+        (_:any, i:any) => i !== index,
       ),
     });
   };
@@ -195,13 +195,13 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     // Check if it's not empty and not already in the list
     if (
       trimmed &&
-      !formData.skills.some(
+      !formData.skills?.some(
         (s) => s.name.toLowerCase() === trimmed.toLowerCase(),
       )
     ) {
       setFormData({
         ...formData,
-        skills: [...formData.skills, { id: Date.now(), name: trimmed }],
+        skills: [...formData.skills || [], { id: Date.now(), name: trimmed }],
       });
       setSkillInput("");
     }
@@ -211,13 +211,13 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     const trimmed = langInput.trim();
     if (
       trimmed &&
-      !formData.languages.some(
+      !formData.languages?.some(
         (l) => l.name.toLowerCase() === trimmed.toLowerCase(),
       )
     ) {
       setFormData({
         ...formData,
-        languages: [...formData.languages, { id: Date.now(), name: trimmed }],
+        languages: [...formData.languages || [], { id: Date.now(), name: trimmed }],
       });
       setLangInput("");
     }
@@ -381,7 +381,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
                     value={
                       formData.salary_min === 0
                         ? ""
-                        : formData.salary_min.toLocaleString()
+                        : formData.salary_min?.toLocaleString()
                     }
                     onChange={handleChange}
                     className={inputStyle}
@@ -401,7 +401,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
                     value={
                       formData.salary_max === 0
                         ? ""
-                        : formData.salary_max.toLocaleString()
+                        : formData.salary_max?.toLocaleString()
                     }
                     onChange={handleChange}
                     className={inputStyle}
@@ -471,7 +471,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
                       onClick={() =>
                         setFormData({
                           ...formData,
-                          skills: formData.skills.filter(
+                          skills: formData.skills?.filter(
                             (s) => s.id !== skill.id,
                           ),
                         })
@@ -513,7 +513,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
                       onClick={() =>
                         setFormData({
                           ...formData,
-                          languages: formData.languages.filter(
+                          languages: formData.languages?.filter(
                             (l) => l.id !== lang.id,
                           ),
                         })
@@ -537,7 +537,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
               </button>
             </div>
             <div className="space-y-2">
-              {formData.screening_questions.map((question, index) => (
+              {formData.screening_questions.map((question: ScreeningQuestion, index: number) => (
                 <div
                   key={index}
                   className="flex gap-2 items-end bg-slate-50 p-2 rounded-xl border border-slate-100"
@@ -578,7 +578,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
                       <input
                         type="checkbox"
                         checked={question.is_required}
-                        onChange={(e) =>
+                        onChange={(e:any) =>
                           updateQuestion(index, "is_required", e.target.checked)
                         }
                         className="w-4 h-4 accent-yellow-500"

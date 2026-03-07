@@ -34,7 +34,7 @@ export default function CandidateViewModal({
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(candidate?.status);
 
-  const profile = candidate.candidate.candidate_profile;
+  const profile = candidate?.candidate?.candidate_profile;
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newStatus = e.target.value;
@@ -45,7 +45,7 @@ export default function CandidateViewModal({
         status: newStatus,
       });
 
-      setCurrentStatus(newStatus);
+      setCurrentStatus(newStatus as any);
       if (onUpdateSuccess) onUpdateSuccess(newStatus);
       
     } catch (error) {
@@ -98,14 +98,14 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
                 />
               ) : (
                 <span className="text-xl">
-                  {candidate.candidate.name.charAt(0)}
+                  {candidate?.candidate?.name.charAt(0)}
                 </span>
               )}
             </div>
 
             <div className="flex flex-col gap-1">
               <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight leading-none">
-                {candidate.candidate.name}
+                {candidate?.candidate?.name}
               </h2>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -176,7 +176,7 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
                 <Phone size={12} /> Contact
               </p>
               <p className="text-sm font-bold text-slate-700">
-                {profile.phone_number}
+                {profile?.phone_number}
               </p>
             </div>
             <div className="space-y-1">
@@ -196,7 +196,7 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
               Skills
             </h3>
             <div className="flex flex-wrap gap-2">
-              {profile.skills?.map((s) => (
+              {profile?.skills?.map((s) => (
                 <span
                   key={s.id}
                   className="bg-slate-900 text-white text-[10px] font-bold px-3 py-1 rounded-md uppercase"
@@ -209,7 +209,7 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
               Languages
             </h3>
             <div className="flex flex-wrap gap-2 mt-2">
-              {profile.languages?.map((l) => (
+              {profile?.languages?.map((l) => (
                 <span
                   key={l.id}
                   className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold px-3 py-1 rounded-md uppercase"
@@ -225,8 +225,8 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] border-l-4 border-yellow-400 pl-3">
               Work Experience
             </h3>
-            {profile.experiences?.length ? (
-              profile.experiences.map((exp, i) => (
+            {profile?.experiences?.length ? (
+              profile?.experiences.map((exp, i) => (
                 <div
                   key={i}
                   className="relative pl-6 border-l border-slate-100 pb-6 last:pb-0"
@@ -257,8 +257,8 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] border-l-4 border-yellow-400 pl-3">
               Education
             </h3>
-            {profile.educations?.length ? (
-              profile.educations.map((edu, i) => (
+            {profile?.educations?.length ? (
+              profile?.educations.map((edu, i) => (
                 <div key={i} className="flex gap-4 items-start">
                   <GraduationCap size={18} className="text-slate-400 mt-1" />
                   <div>
@@ -284,7 +284,7 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] border-l-4 border-yellow-400 pl-3">
               Certification
             </h3>
-            {profile.certifications?.length ? (
+            {profile?.certifications?.length ? (
               profile.certifications.map((cert, i) => (
                 <div key={i} className="flex gap-4 items-start">
                   <Trophy size={18} className="text-slate-400 mt-1" />
@@ -331,8 +331,8 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] border-l-4 border-yellow-400 pl-3">
               Project
             </h3>
-            {profile.certifications?.length ? (
-              profile.projects.map((project, i) => (
+            {profile?.projects?.length ? (
+              profile?.projects.map((project, i) => (
                 <div key={i} className="flex gap-4 items-start">
                   <ArchiveIcon size={18} className="text-slate-400 mt-1" />
                   <div>
@@ -372,13 +372,13 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
           </section>
 
           {/* Cover Letter / Bio */}
-          {profile.cover_letter && (
+          {profile?.cover_letter && (
             <section className="space-y-4">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em] border-l-4 border-yellow-400 pl-3">
                 Cover Letter
               </h3>
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 italic text-slate-600 text-sm leading-loose">
-                "{profile.cover_letter}"
+                "{profile?.cover_letter}"
               </div>
             </section>
           )}
@@ -387,7 +387,7 @@ const current = statusConfig[candidate.status as keyof typeof statusConfig] || s
         {/* Footer Actions */}
         <div className="p-6 border-t bg-slate-50 flex gap-3">
           <a
-            href={profile.active_resume?.resume_url}
+            href={profile?.active_resume?.resume_url}
             target="_blank"
             className="flex-1 bg-slate-900 text-white text-center py-3 rounded-xl font-black text-[11px] uppercase tracking-widest hover:bg-yellow-400 hover:text-slate-900 transition-all flex items-center justify-center gap-2"
           >

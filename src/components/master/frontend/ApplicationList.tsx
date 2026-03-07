@@ -179,7 +179,7 @@ export default function ApplicationList({ jobId }: { jobId: number }) {
             </thead>
 
             <tbody className="divide-y divide-slate-50">
-              {candidates.map((candidate) => (
+              {candidates.map((candidate: Candidate) => (
                 <tr
                   key={candidate.id}
                   className="hover:bg-slate-50/50 transition-colors"
