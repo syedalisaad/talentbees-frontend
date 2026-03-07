@@ -141,7 +141,7 @@ export default function jobQuestions({
             )}
           </button>
         </div>
-        {job?.screening_questions?.map((question, index) => {
+        {job?.screening_questions?.map((question: ScreeningQuestion, index:any) => {
           return (
             <div className="mb-4" key={index}>
               <label className={labelStyle}>{question.question}</label>
