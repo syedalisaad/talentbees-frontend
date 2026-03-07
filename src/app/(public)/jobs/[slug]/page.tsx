@@ -242,7 +242,7 @@ export default function JobsPage({ params }: { params: Promise<{ slug: string }>
 
       <main className="max-w-[1440px] mx-auto w-full px-6 py-8 flex-1 overflow-hidden">
         <div className="flex gap-8 h-[calc(100vh-250px)]">
-          <AdBanner dataAdSlot="1234567890" />
+          <AdBanner dataAdSlot="5766286082" />
           <div className="w-full md:w-[440px] overflow-y-auto pr-3 space-y-4 custom-scrollbar">
             <div className="flex justify-between items-end mb-2 px-1">
               <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
