@@ -104,7 +104,7 @@ export default function CandidateProfileForm({
             city_id: CandidateProfile.city_id?.toString() || "",
           });
         }
-      } catch (err) {
+      } catch (err: any) {
         if (err.response.status == 403) {
           toast.error(err.response.data.message);
           router.push("/login/");
