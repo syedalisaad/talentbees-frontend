@@ -59,7 +59,7 @@ export interface Job {
   languages?: Language[];
   country?: Country;
   city?: City;
-  screening_questions?: ScreeningQuestion[];
+  screening_questions?: ScreeningQuestion[] |any;
   company?: Company;
   created_at?: string;
   updated_at?: string;

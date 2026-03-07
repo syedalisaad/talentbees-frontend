@@ -17,7 +17,14 @@ import {
 } from "lucide-react";
 import api from "@/src/lib/axios";
 import { useRouter } from "next/navigation";
-import { Job, LocationItem, Language, Skill } from "@/src/lib/apiInterface";
+import {
+  Job,
+  LocationItem,
+  Language,
+  Skill,
+  ScreeningAnswer,
+  ScreeningQuestion,
+} from "@/src/lib/apiInterface";
 import DatePicker from "react-datepicker";
 import toast from "react-hot-toast";
 
@@ -44,6 +51,7 @@ export default function CandidateProfileForm({
     educations: [] as any[],
     projects: [] as any[],
     certifications: [] as any[],
+    screening_answers: [] as ScreeningAnswer[],
   });
 
   const [countries, setCountries] = useState<LocationItem[]>([]);
@@ -280,7 +288,7 @@ export default function CandidateProfileForm({
 
     const newErrors: Record<string, string> = {};
 
-    job?.screening_questions?.forEach((question, index) => {
+    job?.screening_questions?.forEach((question: any, index) => {
       const answer = formData.screening_answers[index]?.value;
 
       if (question.is_required && (!answer || answer === "")) {
@@ -460,17 +468,15 @@ export default function CandidateProfileForm({
                   Upload a professional headshot. JPEG or PNG. Max 2MB. Your
                   photo helps build trust with potential employers.
                 </p>
-                  {errors.profile_photo_path && (
-                <p className="text-[9px] text-red-500 font-bold mt-1">
-                  {errors.profile_photo_path}
-                </p>
-              )}
+                {errors.profile_photo_path && (
+                  <p className="text-[9px] text-red-500 font-bold mt-1">
+                    {errors.profile_photo_path}
+                  </p>
+                )}
               </div>
-             
             </div>
 
             <div className="grid grid-cols-12 gap-4">
-             
               <div className="col-span-4">
                 <label className={labelStyle}>Phone Number</label>
                 <input
@@ -805,7 +811,7 @@ export default function CandidateProfileForm({
 
                       <DatePicker
                         selected={parseDate(exp.start_date)}
-                        onChange={(date) =>
+                        onChange={(date: any) =>
                           updateExperience(i, "start_date", formatDate(date))
                         }
                         dateFormat="dd/MM/yyyy"
@@ -824,7 +830,7 @@ export default function CandidateProfileForm({
                       <label className={labelStyle}>End Date</label>
                       <DatePicker
                         selected={parseDate(exp.end_date)}
-                        onChange={(date) =>
+                        onChange={(date: any) =>
                           updateExperience(i, "end_date", formatDate(date))
                         }
                         dateFormat="dd/MM/yyyy"
@@ -922,7 +928,7 @@ export default function CandidateProfileForm({
                       <label className={labelStyle}>Start Date</label>
                       <DatePicker
                         selected={parseDate(edu.start_date)}
-                        onChange={(date) =>
+                        onChange={(date: any) =>
                           updateEducation(i, "start_date", formatDate(date))
                         }
                         dateFormat="dd/MM/yyyy"
@@ -941,7 +947,7 @@ export default function CandidateProfileForm({
                       <label className={labelStyle}>End Date</label>
                       <DatePicker
                         selected={parseDate(edu.end_date)}
-                        onChange={(date) =>
+                        onChange={(date: any) =>
                           updateEducation(i, "end_date", formatDate(date))
                         }
                         dateFormat="dd/MM/yyyy"
@@ -1058,7 +1064,7 @@ export default function CandidateProfileForm({
                       <label className={labelStyle}>Issue Date</label>
                       <DatePicker
                         selected={parseDate(cert.issue_date)}
-                        onChange={(date) =>
+                        onChange={(date: any) =>
                           updateCertification(i, "issue_date", formatDate(date))
                         }
                         dateFormat="dd/MM/yyyy"
@@ -1145,7 +1151,7 @@ export default function CandidateProfileForm({
 
                       <DatePicker
                         selected={parseDate(proj.issue_date)}
-                        onChange={(date) =>
+                        onChange={(date: any) =>
                           updateProject(i, "issue_date", formatDate(date))
                         }
                         dateFormat="dd/MM/yyyy"
