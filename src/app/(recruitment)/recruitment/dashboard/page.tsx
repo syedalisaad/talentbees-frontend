@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { 
   Users, 
   Briefcase, 
@@ -12,6 +12,12 @@ import {
 } from "lucide-react";
 
 export default function RecruitmentDashboard() {
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const stats = [
     {
       label: "Total Specialists",

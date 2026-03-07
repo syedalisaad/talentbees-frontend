@@ -42,7 +42,7 @@ export default function RecruitmentSidebar() {
       router.push("/login/recruitment");
     }
     
-  }, [localStorage, router]);
+  }, [ router]);
 
   const menuItems = [
     { icon: <LayoutDashboard size={20} />, label: "Dashboard", url: "/recruitment/dashboard" },
