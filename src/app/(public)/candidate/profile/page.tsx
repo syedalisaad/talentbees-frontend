@@ -288,8 +288,8 @@ export default function CandidateProfileForm({
 
     const newErrors: Record<string, string> = {};
 
-    job?.screening_questions?.forEach((question: any, index) => {
-      const answer = formData.screening_answers[index]?.value;
+    job?.screening_questions?.forEach((question: any, index: any) => {
+      const answer = formData.screening_answers[index]?.answer;
 
       if (question.is_required && (!answer || answer === "")) {
         newErrors[`question_${question.id}`] = "This question is required";
