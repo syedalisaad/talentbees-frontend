@@ -322,7 +322,7 @@ export default function RecruiterRegisterPage() {
 
           <p className="text-center mt-8 text-xs font-bold text-slate-500 uppercase tracking-tight">
             Already have a portal?{" "}
-            <Link href="/recruitment/login" className="text-yellow-500 hover:underline">Log in</Link>
+            <Link href="/login/recruitment" className="text-yellow-500 hover:underline">Log in</Link>
           </p>
         </div>
       </div>
