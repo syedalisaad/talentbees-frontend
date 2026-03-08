@@ -40,6 +40,21 @@ export default function RootLayout({
       </head>
       <body className={`${jakarta.variable} font-sans`}>
         <Toaster position="top-right" />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-H3QBTJ0VVE"
+          strategy="afterInteractive"
+        />
+
+        {/* 2. Initialize the dataLayer */}
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-H3QBTJ0VVE');
+          `}
+        </Script>
 
         {children}
       </body>

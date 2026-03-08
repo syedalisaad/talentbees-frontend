@@ -23,13 +23,21 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     setMounted(true);
-    const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-    if (storedUser) {
+    
+    // 1. Get the raw value
+    const userStorage = localStorage.getItem("user");
+
+    // 2. Check for "null" or "undefined" strings before parsing
+    if (userStorage && userStorage !== "null" && userStorage !== "undefined") {
       try {
-        const user = (storedUser);
-        setUserEmail(user.email || "");
+        const user = JSON.parse(userStorage);
+        if (user && user.email) {
+          setUserEmail(user.email);
+        }
       } catch (e) {
         console.error("Local storage parse error:", e);
+        // If the data is corrupted, it's safer to remove it
+        localStorage.removeItem("user");
       }
     }
   }, []);

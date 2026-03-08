@@ -16,7 +16,7 @@ export default function Navbar() {
   const syncUser = useCallback(() => {
     const userStorage = localStorage.getItem("user");
     
-    if (userStorage && userStorage !== "null") {
+    if (userStorage && userStorage !== "null" && userStorage !== "undefined") {
       try {
         const parsedUser = JSON.parse(userStorage);
         setUser(parsedUser);
