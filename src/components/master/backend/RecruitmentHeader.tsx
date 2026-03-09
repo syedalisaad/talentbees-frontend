@@ -28,7 +28,7 @@ export default function RecruitmentHeader() {
       try {
         const parsed = (storedUser);
         const fullName = parsed.name || "Admin User";
-
+        console.log(parsed)
         const initials = fullName
           .split(" ")
           .filter(Boolean)
@@ -41,7 +41,7 @@ export default function RecruitmentHeader() {
           name: fullName,
           initials: initials || "AA",
           user: parsed,
-          company:{company_name:'null'},
+          company:parsed.company,
         });
       } catch (e) {
         console.error("Failed to parse user from localStorage", e);
