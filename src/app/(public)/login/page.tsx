@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import api from "@/src/lib/axios";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/lib/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,7 +20,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // New state for specific field errors (e.g., from Laravel/Express validation)
+  const { setUser } = useAuth();
+
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string[] }>({});
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -32,9 +34,13 @@ export default function LoginPage() {
       const response = await api.post("/login", { email, password });      
       const data = response.data.data || response.data;
       localStorage.setItem("token", data.token);
+     
       localStorage.setItem("user", JSON.stringify(data.user));
       window.dispatchEvent(new Event("local-auth-change"));
-      router.push("/");
+       setUser(data.user);
+       setTimeout(() => {
+         router.push("/");
+       }, 100);
     } catch (err: any) {
       if (err.response?.status === 422) {
         setFieldErrors(err.response.data.errors || {});

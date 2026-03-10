@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/src/lib/axios";
+import { useAuth } from "@/src/lib/context/AuthContext";
 
 export default function RecruiterLoginPage() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function RecruiterLoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { setUser } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +35,10 @@ export default function RecruiterLoginPage() {
 
       localStorage.setItem("token", response.data.data.token);
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
-
+      setUser(response.data.data.user);
+      setTimeout(() => {
       router.push("/recruitment/dashboard");
+      }, 100);
     } catch (err: any) {
       setError(
         err.response?.data?.message || "Authentication failed. Try again.",

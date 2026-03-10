@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User } from "@/src/lib/apiInterface";
 
 export default function RecruitmentHeader() {
   const router = useRouter();
@@ -28,7 +27,6 @@ export default function RecruitmentHeader() {
       try {
         const parsed = (storedUser);
         const fullName = parsed.name || "Admin User";
-        console.log(parsed)
         const initials = fullName
           .split(" ")
           .filter(Boolean)

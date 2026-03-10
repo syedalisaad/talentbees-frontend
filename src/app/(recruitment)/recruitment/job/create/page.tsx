@@ -2,9 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { Plus, X, Save, Currency } from "lucide-react";
-import { Job, LocationItem, ScreeningQuestion } from "@/src/lib/apiInterface";
+import {
+  Job,
+  LocationItem,
+  ScreeningQuestion,
+  User,
+} from "@/src/lib/apiInterface";
 import api from "@/src/lib/axios";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/lib/context/AuthContext";
 
 const CURRENCIES = [
   "USD", // US Dollar
@@ -29,6 +35,7 @@ const CURRENCIES = [
   "KRW", // South Korean Won
 ];
 export default function PostJobForm({ jobId }: { jobId?: string }) {
+  const { user } = useAuth() as { user: User | null };
   const router = useRouter();
   const [formData, setFormData] = useState<Partial<Job>>({
     title: "",
@@ -39,8 +46,9 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     is_remote: false,
     salary_max: 0,
     salary_min: 0,
-    currency:'USD',
+    currency: "USD",
     description: "",
+    external_link: "",
     skills: [],
     languages: [],
     screening_questions: [],
@@ -104,7 +112,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
       ...formData,
       screening_questions: [
         ...formData.screening_questions,
-        {  question: "", field_type: "text", is_required: false, order: 1 },
+        { question: "", field_type: "text", is_required: false, order: 1 },
       ],
     });
   };
@@ -113,7 +121,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     setFormData({
       ...formData,
       screening_questions: formData.screening_questions.filter(
-        (_:any, i:any) => i !== index,
+        (_: any, i: any) => i !== index,
       ),
     });
   };
@@ -156,39 +164,39 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     setHasMounted(true);
   }, []);
 
- const handleChange = (
-  e: React.ChangeEvent<
-    HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-  >,
-) => {
-  const { name, value, type } = e.target;
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
+    const { name, value, type } = e.target;
 
-  // 1. Handle Checkboxes
-  if (type === "checkbox") {
-    const checked = (e.target as HTMLInputElement).checked;
-    setFormData({ ...formData, [name]: checked });
-    return;
-  }
+    // 1. Handle Checkboxes
+    if (type === "checkbox") {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData({ ...formData, [name]: checked });
+      return;
+    }
 
-  // 2. Handle Salary/Numeric Pattern fields (Strip commas and non-digits)
-  if (name === "salary_min" || name === "salary_max") {
-    const rawValue = value.replace(/\D/g, ""); // Removes everything except 0-9
-    setFormData({ 
-      ...formData, 
-      [name]: rawValue === "" ? 0 : Number(rawValue) 
-    });
-    return;
-  }
+    // 2. Handle Salary/Numeric Pattern fields (Strip commas and non-digits)
+    if (name === "salary_min" || name === "salary_max") {
+      const rawValue = value.replace(/\D/g, ""); // Removes everything except 0-9
+      setFormData({
+        ...formData,
+        [name]: rawValue === "" ? 0 : Number(rawValue),
+      });
+      return;
+    }
 
-  // 3. Handle Standard Numeric inputs (if any use type="number")
-  if (type === "number") {
-    setFormData({ ...formData, [name]: value === "" ? 0 : Number(value) });
-    return;
-  }
+    // 3. Handle Standard Numeric inputs (if any use type="number")
+    if (type === "number") {
+      setFormData({ ...formData, [name]: value === "" ? 0 : Number(value) });
+      return;
+    }
 
-  // 4. Handle Default (Strings, Selects, Textareas)
-  setFormData({ ...formData, [name]: value });
-};
+    // 4. Handle Default (Strings, Selects, Textareas)
+    setFormData({ ...formData, [name]: value });
+  };
 
   const addSkill = () => {
     const trimmed = skillInput.trim();
@@ -201,7 +209,7 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     ) {
       setFormData({
         ...formData,
-        skills: [...formData.skills || [], { id: Date.now(), name: trimmed }],
+        skills: [...(formData.skills || []), { id: Date.now(), name: trimmed }],
       });
       setSkillInput("");
     }
@@ -217,7 +225,10 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
     ) {
       setFormData({
         ...formData,
-        languages: [...formData.languages || [], { id: Date.now(), name: trimmed }],
+        languages: [
+          ...(formData.languages || []),
+          { id: Date.now(), name: trimmed },
+        ],
       });
       setLangInput("");
     }
@@ -438,6 +449,20 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
               />
             </div>
             <ValidationError errors={fieldErrors} field="description" />
+            {user?.allow_external_link && (
+              <>
+                <div>
+                  <label className={labelStyle}>External Link</label>
+                  <input
+                    name="external_link"
+                    value={formData.external_link}
+                    onChange={handleChange}
+                    className={`${inputStyle} resize-none`}
+                  />
+                </div>
+                <ValidationError errors={fieldErrors} field="external_link" />
+              </>
+            )}
           </section>
           <div className="flex gap-2">
             <section className="flex-1 min-w-[400px] bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
@@ -537,65 +562,71 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
               </button>
             </div>
             <div className="space-y-2">
-              {formData.screening_questions.map((question: ScreeningQuestion, index: number) => (
-                <div
-                  key={index}
-                  className="flex gap-2 items-end bg-slate-50 p-2 rounded-xl border border-slate-100"
-                >
-                  <div className="flex-[3]">
-                    <label className="text-[8px] font-bold uppercase text-slate-400 mb-1 block">
-                      Question
-                    </label>
-                    <input
-                      type="text"
-                      value={question.question}
-                      onChange={(e) =>
-                        updateQuestion(index, "question", e.target.value)
-                      }
-                      placeholder="e.g. How many years of experience do you have?"
-                      className={inputStyle}
-                    />
-                  </div>
-
-                  <div className="flex-1">
-                    <label className="text-[8px] font-bold uppercase text-slate-400 mb-1 block">
-                      Response Type
-                    </label>
-                    <select
-                      value={question.field_type}
-                      onChange={(e) =>
-                        updateQuestion(index, "field_type", e.target.value)
-                      }
-                      className={inputStyle}
-                    >
-                      <option value="text">Text</option>
-                      <option value="number">Number</option>
-                      <option value="boolean">Yes/No (Radio)</option>
-                    </select>
-                  </div>
-                  <div className="flex-[1]">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={question.is_required}
-                        onChange={(e:any) =>
-                          updateQuestion(index, "is_required", e.target.checked)
-                        }
-                        className="w-4 h-4 accent-yellow-500"
-                      />
-                      <span className="text-[10px]">Is Required</span>
-                    </label>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => removeQuestion(index)}
-                    className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+              {formData.screening_questions.map(
+                (question: ScreeningQuestion, index: number) => (
+                  <div
+                    key={index}
+                    className="flex gap-2 items-end bg-slate-50 p-2 rounded-xl border border-slate-100"
                   >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
+                    <div className="flex-[3]">
+                      <label className="text-[8px] font-bold uppercase text-slate-400 mb-1 block">
+                        Question
+                      </label>
+                      <input
+                        type="text"
+                        value={question.question}
+                        onChange={(e) =>
+                          updateQuestion(index, "question", e.target.value)
+                        }
+                        placeholder="e.g. How many years of experience do you have?"
+                        className={inputStyle}
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <label className="text-[8px] font-bold uppercase text-slate-400 mb-1 block">
+                        Response Type
+                      </label>
+                      <select
+                        value={question.field_type}
+                        onChange={(e) =>
+                          updateQuestion(index, "field_type", e.target.value)
+                        }
+                        className={inputStyle}
+                      >
+                        <option value="text">Text</option>
+                        <option value="number">Number</option>
+                        <option value="boolean">Yes/No (Radio)</option>
+                      </select>
+                    </div>
+                    <div className="flex-[1]">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={question.is_required}
+                          onChange={(e: any) =>
+                            updateQuestion(
+                              index,
+                              "is_required",
+                              e.target.checked,
+                            )
+                          }
+                          className="w-4 h-4 accent-yellow-500"
+                        />
+                        <span className="text-[10px]">Is Required</span>
+                      </label>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => removeQuestion(index)}
+                      className="bg-red-50 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ),
+              )}
 
               {formData.screening_questions.length === 0 && (
                 <div className="text-center py-4 border-2 border-dashed border-slate-100 rounded-xl">

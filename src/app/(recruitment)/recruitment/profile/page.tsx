@@ -32,7 +32,6 @@ export default function ProfileForm() {
   const [fieldErrors, setFieldErrors] = useState<any>({});
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  console.log(formData);
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -235,7 +234,6 @@ export default function ProfileForm() {
               Company Details
             </h2>
 
-            {/* Logo Row */}
             <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
               <div className="relative h-20 w-20 bg-white rounded-lg border border-slate-200 overflow-hidden flex items-center justify-center">
                 {logoPreview || formData.company?.logo_url ? (

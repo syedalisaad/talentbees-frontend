@@ -89,7 +89,6 @@ export default function jobQuestions({
         setErrors(err.response.data.errors);
       }
       if(err.response.status==403){
-        console.log(err.response.data.message)
             toast.error(err.response.data.message);
 
       }

@@ -55,6 +55,7 @@ export interface Job {
   currency: string;
   job_type: string;
   description: string;
+  external_link: string;
   skills: Skill[] | [];
   languages?: Language[];
   country?: Country;
@@ -112,7 +113,6 @@ export interface CandidateProfile {
     expected_salary: string | null;
     open_to_work: boolean;
     
-    // JSON Casted field
     social_links: any | null;
 
     // Relationships
@@ -183,6 +183,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  allow_external_link:boolean;
   roles: role[];
   created_at: string;
   updated_at: string;
