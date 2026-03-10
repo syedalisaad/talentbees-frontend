@@ -1,23 +1,13 @@
-"use client";
+import Jobs from "@/src/components/common/job";
+import { Metadata } from "next";
 
-import JobsListContent from "@/src/components/master/frontend/JobsListContent";
-import React, {  Suspense } from "react";
-
-
-
-// 1. Move the main logic into a sub-component
-
-// 2. Export the component wrapped in Suspense for the Build process
+export const metadata: Metadata = {
+  title: "Latest Jobs",
+  description: "Browse the latest job openings in Pakistan, UAE, UK, and USA on TalentBees.",
+  keywords: ["Jobs in Pakistan", "UAE Careers", "UK Job Portal"],
+};
 export default function JobsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen bg-slate-900">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-300"></div>
-        </div>
-      }
-    >
-      <JobsListContent />
-    </Suspense>
+    <Jobs/>
   );
 }

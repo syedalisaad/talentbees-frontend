@@ -5,6 +5,8 @@ import { Search, MapPin, Briefcase, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+
+
 const categories = [
   { name: "Software", count: "1.2k+" },
   { name: "Design", count: "800+" },
