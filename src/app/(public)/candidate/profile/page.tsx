@@ -113,7 +113,7 @@ export default function CandidateProfileForm({
           });
         }
       } catch (err: any) {
-        if (err.response.status == 403) {
+        if (err.response.status == 403 || err.response.status == 401) {
           toast.error(err.response.data.message);
           router.push("/login/");
         }
@@ -314,7 +314,7 @@ export default function CandidateProfileForm({
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors);
       }
-      if (err.response.status == 403) {
+      if (err.response.status == 403 || err.response.status == 401) {
         toast.error(err.response.data.message);
         router.push("/login/");
       }
