@@ -19,15 +19,39 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: {
     template: '%s | TalentBees',
-    default: 'TalentBees - Global Job Portal', 
+    default: 'TalentBees - Global Job Portal | Jobs in UAE, UK, & Pakistan', 
   },
-  description: 'Find jobs in USA, UK, Pakistan, and UAE.',
-  // Added basic OpenGraph for better social sharing
+  description: 'Connect with top employers and find high-paying job opportunities in the USA, UK, Pakistan, and UAE. Your gateway to a global career.',
+  
+  verification: {
+    other: {
+      "google-adsense-account": "ca-pub-8729012662530579",
+    },
+  },
+
   openGraph: {
-    title: 'TalentBees',
-    description: 'Find jobs in USA, UK, Pakistan, and UAE.',
+    title: 'TalentBees - Global Job Portal',
+    description: 'Find your next career move in the UAE, UK, and beyond.',
+    url: 'https://talentbees.com', 
+    siteName: 'TalentBees',
+    images: [
+      {
+        url: '/og-image.jpg', 
+        width: 1200,
+        height: 630,
+        alt: 'TalentBees Job Portal',
+      },
+    ],
+    locale: 'en_US',
     type: 'website',
-  }
+  },
+
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TalentBees - Global Job Portal',
+    description: 'Find jobs in USA, UK, Pakistan, and UAE.',
+    images: ['/og-image.jpg'], 
+  },
 };
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
