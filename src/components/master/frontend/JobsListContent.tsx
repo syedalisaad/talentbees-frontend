@@ -308,7 +308,7 @@ export default function JobsListContent() {
                           </span>
                           <span className="flex items-center gap-1 text-slate-900 font-black underline decoration-yellow-300 decoration-2 underline-offset-4">
                             <Wallet size={16} />{" "}
-                            {selectedJob.salary_min && selectedJob.salary_max
+                            {selectedJob.salary_min>0 && selectedJob.salary_max>0
                               ? `${selectedJob.salary_min} - ${selectedJob.salary_max} ${selectedJob.currency}`
                               : "Salary not disclosed"}
                           </span>

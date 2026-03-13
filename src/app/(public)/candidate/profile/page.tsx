@@ -24,9 +24,33 @@ import {
   Skill,
   ScreeningAnswer,
   ScreeningQuestion,
+  CandidateProfile,
 } from "@/src/lib/apiInterface";
 import DatePicker from "react-datepicker";
 import toast from "react-hot-toast";
+
+const CURRENCIES = [
+  "USD", // US Dollar
+  "EUR", // Euro
+  "GBP", // British Pound
+  "JPY", // Japanese Yen
+  "CNY", // Chinese Yuan
+  "AUD", // Australian Dollar
+  "CAD", // Canadian Dollar
+  "CHF", // Swiss Franc
+  "AED", // UAE Dirham
+  "SAR", // Saudi Riyal
+  "PKR", // Pakistani Rupee
+  "INR", // Indian Rupee
+  "SGD", // Singapore Dollar
+  "HKD", // Hong Kong Dollar
+  "NZD", // New Zealand Dollar
+  "TRY", // Turkish Lira
+  "ZAR", // South African Rand
+  "SEK", // Swedish Krona
+  "NOK", // Norwegian Krone
+  "KRW", // South Korean Won
+];
 
 export default function CandidateProfileForm({
   jobSlug,
@@ -45,6 +69,7 @@ export default function CandidateProfileForm({
     open_to_work: true,
     expected_salary: "",
     current_salary: "",
+    currency: "USD",
     skills: [] as Skill[],
     languages: [] as Language[],
     experiences: [] as any[],
@@ -104,8 +129,8 @@ export default function CandidateProfileForm({
         const CandidateProfileRes = await api.get("/candidate-profile-me");
         if (CandidateProfileRes.data.data) {
           const CandidateProfile = CandidateProfileRes.data.data;
-          setProfilePhotoPreview(CandidateProfile.profile_photo_url || null);
-          setResumePreview(CandidateProfile.active_resume.resume_url || null);
+          setProfilePhotoPreview(CandidateProfile?.profile_photo_url || null);
+          setResumePreview(CandidateProfile?.active_resume?.resume_url || null);
           setFormData({
             ...CandidateProfile,
             country_id: CandidateProfile.country_id?.toString() || "",
@@ -113,9 +138,21 @@ export default function CandidateProfileForm({
           });
         }
       } catch (err: any) {
-        if (err.response.status == 403 || err.response.status == 401) {
-          toast.error(err.response.data.message);
-          router.push("/login/");
+        const status = err.response?.status;
+        console.log(status)
+        const errorMessage =
+          err.response?.data?.message ||
+          "Something went wrong. Please try again.";
+
+        // 2. Handle unauthorized/forbidden access
+        if (status === 401 || status === 403) {
+          toast.error(errorMessage);
+
+
+          router.push("/login");
+        } else {
+          // Handle other errors (500, network issues, etc.)
+          toast.error(errorMessage);
         }
       } finally {
         setLoadingInitial(false);
@@ -144,6 +181,15 @@ export default function CandidateProfileForm({
     >,
   ) => {
     const { name, value, type } = e.target;
+
+    if (name === "expected_salary" || name === "current_salary") {
+      const rawValue = value.replace(/\D/g, "");
+      setFormData({
+        ...formData,
+        [name]: rawValue === "" ? 0 : Number(rawValue),
+      });
+      return;
+    }
     const val =
       type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
     setFormData((prev) => ({ ...prev, [name]: val }));
@@ -168,7 +214,8 @@ export default function CandidateProfileForm({
     payload.append("country_id", formData.country_id);
     payload.append("city_id", formData.city_id);
     payload.append("expected_salary", formData.expected_salary);
-    payload.append("current_salary", formData.current_salary);
+    payload.append("expected_salary", formData.expected_salary);
+    payload.append("currency", formData.currency);
     payload.append("open_to_work", formData.open_to_work ? "1" : "0");
 
     if (resumeFile) payload.append("resume", resumeFile);
@@ -288,13 +335,15 @@ export default function CandidateProfileForm({
 
     const newErrors: Record<string, string> = {};
 
-    job?.screening_questions?.forEach((question: ScreeningQuestion, index: any) => {
-      const answer = formData.screening_answers[index]?.answer;
+    job?.screening_questions?.forEach(
+      (question: ScreeningQuestion, index: any) => {
+        const answer = formData.screening_answers[index]?.answer;
 
-      if (question.is_required && (!answer || answer === "")) {
-        newErrors[`question_${question.id}`] = "This question is required";
-      }
-    });
+        if (question.is_required && (!answer || answer === "")) {
+          newErrors[`question_${question.id}`] = "This question is required";
+        }
+      },
+    );
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -428,7 +477,6 @@ export default function CandidateProfileForm({
             </div>
 
             <div className="flex flex-col md:flex-row gap-8 items-start mb-6 border-b border-slate-50 pb-6">
-              {/* --- Profile Photo Upload Component --- */}
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-slate-100 flex items-center justify-center relative">
                   {profilePhotoPreview ? (
@@ -443,7 +491,6 @@ export default function CandidateProfileForm({
                     </span>
                   )}
 
-                  {/* Hover Overlay */}
                   <label className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                     <Camera size={20} className="text-white" />
                     <input
@@ -459,7 +506,6 @@ export default function CandidateProfileForm({
                 </div>
               </div>
 
-              {/* Identity Text */}
               <div className="flex-1 space-y-1">
                 <h3 className="text-sm font-black text-slate-900 uppercase">
                   Profile Avatar
@@ -527,33 +573,46 @@ export default function CandidateProfileForm({
                   ))}
                 </select>
               </div>
-              <div className="col-span-4">
-                <label className={labelStyle}>
-                  Current Monthly Salary (USD)
-                </label>
+              <div className="col-span-3">
+                <label className={labelStyle}>Current Monthly Salary</label>
                 <input
                   name="current_salary"
-                  type="number"
+                  type="text"
                   value={formData.current_salary}
                   onChange={handleChange}
                   className={inputStyle}
                   placeholder="5000"
                 />
               </div>
-              <div className="col-span-4">
-                <label className={labelStyle}>
-                  Expected Monthly Salary (USD)
-                </label>
+              <div className="col-span-3">
+                <label className={labelStyle}>Expected Monthly Salary</label>
                 <input
                   name="expected_salary"
-                  type="number"
+                  type="text"
                   value={formData.expected_salary}
                   onChange={handleChange}
                   className={inputStyle}
                   placeholder="5000"
                 />
               </div>
-              <div className="flex items-end pb-2 col-span-4">
+              <div className="col-span-3">
+                <label className={labelStyle}>Currency</label>
+
+                <select
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleChange}
+                  className={inputStyle}
+                >
+                  <option value="">Select Currency</option>
+                  {CURRENCIES.map((currency) => (
+                    <option key={currency} value={currency}>
+                      {currency}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-end pb-2 col-span-3">
                 <label className="flex items-center gap-3 cursor-pointer group">
                   <input
                     name="open_to_work"
@@ -572,6 +631,7 @@ export default function CandidateProfileForm({
                   </div>
                 </label>
               </div>
+
               <div className="col-span-12">
                 <label className={labelStyle}>Cover Letter</label>
                 <textarea

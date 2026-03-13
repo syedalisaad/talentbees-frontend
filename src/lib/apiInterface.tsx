@@ -103,7 +103,7 @@ export interface CandidateProfile {
     id?: number;
     user_id: number;
     profile_photo_path: string | null;
-    profile_photo_url: string; // From $appends
+    profile_photo_url: string; 
     phone_number: string;
     address: string | null;
     country_id: number;
@@ -112,6 +112,7 @@ export interface CandidateProfile {
     current_salary: string | null;
     expected_salary: string | null;
     open_to_work: boolean;
+    currency:String|null
     
     social_links: any | null;
 
@@ -127,6 +128,7 @@ export interface CandidateProfile {
     certifications?: any[];
     resumes?: any[];
     active_resume?: any;
+    screening_answers ?: ScreeningAnswer[];
 }
 
 export interface Company {

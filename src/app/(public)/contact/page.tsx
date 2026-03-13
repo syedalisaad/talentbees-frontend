@@ -18,8 +18,6 @@ export default function ContactUs() {
   const handleSubmit = (e: any) => {
     e.preventDefault();
 
-    // TODO: connect with API
-    console.log(form);
 
     alert("Message sent successfully!");
     setForm({

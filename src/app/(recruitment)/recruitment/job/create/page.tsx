@@ -171,16 +171,14 @@ export default function PostJobForm({ jobId }: { jobId?: string }) {
   ) => {
     const { name, value, type } = e.target;
 
-    // 1. Handle Checkboxes
     if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData({ ...formData, [name]: checked });
       return;
     }
 
-    // 2. Handle Salary/Numeric Pattern fields (Strip commas and non-digits)
     if (name === "salary_min" || name === "salary_max") {
-      const rawValue = value.replace(/\D/g, ""); // Removes everything except 0-9
+      const rawValue = value.replace(/\D/g, ""); 
       setFormData({
         ...formData,
         [name]: rawValue === "" ? 0 : Number(rawValue),
